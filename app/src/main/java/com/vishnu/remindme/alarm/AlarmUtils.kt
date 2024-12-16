@@ -4,17 +4,14 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import com.vishnu.remindme.model.Reminder
+import com.vishnu.remindme.utils.Constants
 
 fun scheduleAlarm(context: Context, reminder: Reminder) {
-
-    Log.e("vishnu", "scheduleAlarm() called with: context = $context, reminder = $reminder")
-
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
     val intent = Intent(context, AlarmReceiver::class.java).apply {
-        putExtra("reminderItem", reminder)
+        putExtra(Constants.REMINDER_ITEM_KEY, reminder)
     }
 
     val pendingIntent = PendingIntent.getBroadcast(

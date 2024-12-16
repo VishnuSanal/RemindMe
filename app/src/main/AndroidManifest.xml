@@ -16,6 +16,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.RemindMe"
         tools:targetApi="31">
+
+        <receiver
+            android:name=".alarm.AlarmReceiver"
+            android:enabled="true"
+            android:exported="true" />
+
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
@@ -26,6 +32,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.AlarmActivity"
+            android:exported="true"
+            android:theme="@style/Theme.RemindMe" />
     </application>
 
 </manifest>
