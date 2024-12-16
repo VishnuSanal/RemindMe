@@ -20,6 +20,6 @@ interface ReminderDAO {
     @Delete
     suspend fun delete(reminder: Reminder)
 
-    @Query("SELECT * FROM reminder_items ORDER BY dueDate DESC")
+    @Query("SELECT * FROM reminder_items ORDER BY dueDate ASC")
     fun getAllEntries(): Flow<List<Reminder>>
 }
