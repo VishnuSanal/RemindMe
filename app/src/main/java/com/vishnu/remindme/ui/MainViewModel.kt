@@ -1,7 +1,9 @@
 package com.vishnu.emotiontracker.ui
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.vishnu.remindme.alarm.scheduleAlarm
 import com.vishnu.remindme.db.ReminderRepository
 import com.vishnu.remindme.model.Reminder
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,7 +14,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(private val repository: ReminderRepository) : ViewModel() {
+class MainViewModel @Inject constructor(
+    private val application: Application,
+    private val repository: ReminderRepository
+) : AndroidViewModel(application) {
 
     private val _reminderEntries = MutableStateFlow<List<Reminder>>(emptyList())
     val reminderEntries: StateFlow<List<Reminder>> = _reminderEntries.asStateFlow()
@@ -23,6 +28,11 @@ class MainViewModel @Inject constructor(private val repository: ReminderReposito
                 _reminderEntries.value = notes
             }
         }
+    }
+
+    fun addNew(reminder: Reminder) {
+        scheduleAlarm(context = application, reminder = reminder)
+        insert(reminder)
     }
 
     fun insert(reminder: Reminder) {

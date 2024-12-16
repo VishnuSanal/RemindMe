@@ -95,15 +95,16 @@ fun HomeScreen(
         AlarmDialog(
             onDismiss = { showDialog = false },
             onSetAlarm = { title, description, dueDate ->
-                showDialog = false
 
-                viewModel.insert(
-                    Reminder(
-                        title = title,
-                        description = description,
-                        dueDate = dueDate,
-                    )
+                val reminder = Reminder(
+                    title = title,
+                    description = description,
+                    dueDate = dueDate,
                 )
+
+                viewModel.addNew(reminder = reminder)
+
+                showDialog = false
             }
         )
     }
