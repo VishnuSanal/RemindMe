@@ -1,18 +1,13 @@
 package com.vishnu.remindme.ui
 
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import androidx.core.content.ContextCompat
 import com.vishnu.remindme.ui.theme.RemindMeTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -22,35 +17,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            checkPermission()
-        }
-
         setContent {
             RemindMeTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     HomeScreen(Modifier.padding(innerPadding))
                 }
             }
-        }
-    }
-
-    private fun checkPermission() {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.SCHEDULE_EXACT_ALARM
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            requestPermissionLauncher.launch(android.Manifest.permission.SCHEDULE_EXACT_ALARM)
-        }
-    }
-
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (!isGranted) {
-            Toast.makeText(this, "Notification permission mandatory!", Toast.LENGTH_LONG)
-//            finish()
         }
     }
 }
