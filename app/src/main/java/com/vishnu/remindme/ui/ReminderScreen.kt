@@ -2,6 +2,7 @@ package com.vishnu.remindme.ui
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,9 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -36,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -116,14 +116,14 @@ fun AlarmDialog(
     onSetAlarm: (String, String?, Long) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf<String?>(null) }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var selectedTime by remember { mutableStateOf(LocalTime.now()) }
 
     var dueDate by remember { mutableStateOf(LocalDateTime.now()) }
     var validInput by remember { mutableStateOf(false) }
 
-    validInput = dueDate > LocalDateTime.now() && title.isNotEmpty()
+    validInput = dueDate > LocalDateTime.now() && title.isNotBlank()
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -145,7 +145,7 @@ fun AlarmDialog(
                 OutlinedTextField(
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                    value = description,
+                    value = description ?: "",
                     onValueChange = { description = it },
                     label = { Text("Description") },
                 )
@@ -163,7 +163,7 @@ fun AlarmDialog(
             TextButton(
                 onClick = {
                     onSetAlarm(
-                        title,
+                        title.trim(),
                         description,
                         dueDate
                             .atZone(ZoneId.systemDefault())
@@ -247,8 +247,8 @@ fun ReminderCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Title
             Text(
+                modifier = Modifier.padding(4.dp),
                 text = reminder.title,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
@@ -256,33 +256,34 @@ fun ReminderCard(
                 overflow = TextOverflow.Ellipsis
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Description
             reminder.description?.let {
                 Text(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .background(Color.Red),
                     text = it,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-
-                Spacer(modifier = Modifier.height(8.dp))
             }
 
-            // Due Date
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
+                    modifier = Modifier.padding(4.dp),
                     imageVector = Icons.Default.DateRange,
                     contentDescription = "Due Date",
                     tint = MaterialTheme.colorScheme.secondary
                 )
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = Utils.getFormattedDateFromTimestamp(reminder.dueDate),
+                    modifier = Modifier.padding(4.dp),
+                    text = Utils.parseMillisToDeviceTimeFormat(
+                        LocalContext.current,
+                        reminder.dueDate
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
