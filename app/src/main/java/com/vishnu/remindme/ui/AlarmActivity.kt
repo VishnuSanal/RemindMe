@@ -1,6 +1,8 @@
 package com.vishnu.remindme.ui
 
-import android.media.MediaPlayer
+import android.media.AudioAttributes
+import android.media.Ringtone
+import android.media.RingtoneManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -43,18 +45,33 @@ import com.vishnu.remindme.model.Reminder
 import com.vishnu.remindme.ui.theme.RemindMeTheme
 import com.vishnu.remindme.utils.Constants
 
+
 class AlarmActivity : ComponentActivity() {
 
-    private lateinit var mediaPlayer: MediaPlayer
+    private lateinit var ringtone: Ringtone
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        mediaPlayer =
-            MediaPlayer.create(this, android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI)
-        mediaPlayer.isLooping = true
-        mediaPlayer.start()
+        var ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+
+        if (ringtoneUri == null) {
+            ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+            if (ringtoneUri == null) {
+                ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+            }
+        }
+
+        ringtone = RingtoneManager.getRingtone(applicationContext, ringtoneUri)
+        ringtone.setAudioAttributes(
+            AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
+        )
+        ringtone.isLooping = true
+        ringtone.play()
 
         val reminder =
             intent.getParcelableExtra<Reminder>(Constants.REMINDER_ITEM_KEY, Reminder::class.java)
@@ -68,12 +85,11 @@ class AlarmActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding),
                         reminder = reminder,
                         onDismiss = {
-                            mediaPlayer.stop()
+                            ringtone.stop()
                             finish()
                         },
                         onSnooze = {
-                            mediaPlayer.stop()
-                            // Logic for snoozing the alarm
+                            ringtone.stop()
                             finish()
                         }
                     )
@@ -86,10 +102,8 @@ class AlarmActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (mediaPlayer.isPlaying) {
-            mediaPlayer.stop()
-        }
-        mediaPlayer.release()
+        if (ringtone.isPlaying)
+            ringtone.stop()
     }
 }
 
