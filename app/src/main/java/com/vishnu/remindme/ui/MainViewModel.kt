@@ -40,6 +40,7 @@ class MainViewModel @Inject constructor(
 
     fun updateReminder(reminder: Reminder) {
         viewModelScope.launch {
+            AlarmUtils.cancelAlarm(context = application.applicationContext, reminder = reminder)
             AlarmUtils.scheduleAlarm(context = application.applicationContext, reminder = reminder)
             update(reminder)
         }

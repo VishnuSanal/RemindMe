@@ -35,7 +35,6 @@
 
         <activity
             android:name=".ui.AlarmActivity"
-            android:excludeFromRecents="true"
             android:exported="true"
             android:theme="@style/Theme.RemindMe" />
     </application>

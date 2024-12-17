@@ -20,7 +20,7 @@ class AlarmUtils {
                 context,
                 reminder._id.toInt(),
                 intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                PendingIntent.FLAG_IMMUTABLE
             )
 
             alarmManager.setExactAndAllowWhileIdle(
@@ -29,7 +29,6 @@ class AlarmUtils {
                 pendingIntent
             )
         }
-
 
         fun cancelAlarm(context: Context, reminder: Reminder) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -42,7 +41,7 @@ class AlarmUtils {
                 context,
                 reminder._id.toInt(),
                 intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                PendingIntent.FLAG_IMMUTABLE
             )
 
             alarmManager.cancel(
