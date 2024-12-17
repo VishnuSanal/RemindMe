@@ -16,7 +16,7 @@ fun scheduleAlarm(context: Context, reminder: Reminder) {
 
     val pendingIntent = PendingIntent.getBroadcast(
         context,
-        0,
+        reminder._id,
         intent,
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )

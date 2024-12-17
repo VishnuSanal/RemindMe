@@ -9,7 +9,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class Reminder(
     @PrimaryKey(autoGenerate = true)
-    val _id: Int = 0,
+    var _id: Int = 0,
     val title: String,
     val description: String?,
     val dueDate: Long,

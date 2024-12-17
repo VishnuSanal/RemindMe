@@ -30,18 +30,23 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun addNew(reminder: Reminder) {
+    fun addNewReminder(reminder: Reminder) {
         scheduleAlarm(context = application, reminder = reminder)
         insert(reminder)
     }
 
-    fun insert(reminder: Reminder) {
+    fun updateReminder(reminder: Reminder) {
+        scheduleAlarm(context = application, reminder = reminder)
+        update(reminder)
+    }
+
+    private fun insert(reminder: Reminder) {
         viewModelScope.launch {
             repository.insert(reminder)
         }
     }
 
-    fun update(reminder: Reminder) {
+    private fun update(reminder: Reminder) {
         viewModelScope.launch {
             repository.update(reminder)
         }

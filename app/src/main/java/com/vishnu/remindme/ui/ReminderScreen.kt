@@ -2,7 +2,6 @@ package com.vishnu.remindme.ui
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,6 +27,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,7 +35,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -46,6 +45,7 @@ import com.vishnu.emotiontracker.ui.MainViewModel
 import com.vishnu.remindme.R
 import com.vishnu.remindme.model.Reminder
 import com.vishnu.remindme.utils.Utils
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -58,6 +58,7 @@ fun HomeScreen(
     viewModel: MainViewModel = hiltViewModel(),
 ) {
     var showDialog by remember { mutableStateOf(false) }
+    var dialogReminderItem by remember { mutableStateOf<Reminder?>(null) }
 
     Column(modifier) {
 
@@ -88,11 +89,18 @@ fun HomeScreen(
             )
         }
 
-        ReminderList()
+        ReminderList(
+            onItemClick = {
+                dialogReminderItem = it
+                showDialog = true
+            },
+            onItemDelete = { viewModel.delete(it) }
+        )
     }
 
     if (showDialog) {
         AlarmDialog(
+            reminder = dialogReminderItem,
             onDismiss = { showDialog = false },
             onSetAlarm = { title, description, dueDate ->
 
@@ -102,7 +110,12 @@ fun HomeScreen(
                     dueDate = dueDate,
                 )
 
-                viewModel.addNew(reminder = reminder)
+                if (dialogReminderItem == null)
+                    viewModel.addNewReminder(reminder = reminder)
+                else {
+                    reminder._id = dialogReminderItem!!._id
+                    viewModel.updateReminder(reminder)
+                }
 
                 showDialog = false
             }
@@ -113,7 +126,8 @@ fun HomeScreen(
 @Composable
 fun AlarmDialog(
     onDismiss: () -> Unit,
-    onSetAlarm: (String, String?, Long) -> Unit
+    onSetAlarm: (String, String?, Long) -> Unit,
+    reminder: Reminder?,
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf<String?>(null) }
@@ -122,6 +136,20 @@ fun AlarmDialog(
 
     var dueDate by remember { mutableStateOf(LocalDateTime.now()) }
     var validInput by remember { mutableStateOf(false) }
+
+    LaunchedEffect(null) {
+        if (reminder != null) {
+            title = reminder.title
+            description = reminder.description
+
+            dueDate = LocalDateTime.ofInstant(
+                Instant.ofEpochMilli(reminder.dueDate),
+                ZoneId.systemDefault()
+            );
+            selectedDate = dueDate.toLocalDate()
+            selectedTime = dueDate.toLocalTime()
+        }
+    }
 
     validInput = dueDate > LocalDateTime.now() && title.isNotBlank()
 
@@ -212,6 +240,8 @@ fun TimePickerField(selectedTime: LocalTime, onTimeChange: (LocalTime) -> Unit) 
 @Composable
 fun ReminderList(
     modifier: Modifier = Modifier,
+    onItemClick: (reminder: Reminder) -> Unit,
+    onItemDelete: (reminder: Reminder) -> Unit,
     viewModel: MainViewModel = hiltViewModel()
 ) {
     val reminderEntries by viewModel.reminderEntries.collectAsState()
@@ -222,7 +252,11 @@ fun ReminderList(
             .padding(8.dp)
     ) {
         items(reminderEntries) {
-            ReminderCard(reminder = it, onDelete = { viewModel.delete(it) })
+            ReminderCard(
+                reminder = it,
+                onClick = { onItemClick(it) },
+                onDelete = { onItemDelete(it) },
+            )
         }
     }
 }
@@ -231,8 +265,8 @@ fun ReminderList(
 @Composable
 fun ReminderCard(
     reminder: Reminder,
-    onClick: () -> Unit = {},
-    onDelete: () -> Unit = {}
+    onClick: () -> Unit,
+    onDelete: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -259,8 +293,7 @@ fun ReminderCard(
             reminder.description?.let {
                 Text(
                     modifier = Modifier
-                        .padding(4.dp)
-                        .background(Color.Red),
+                        .padding(4.dp),
                     text = it,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
