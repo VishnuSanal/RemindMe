@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ReminderDAO {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(reminder: Reminder)
+    suspend fun insert(reminder: Reminder): Long
 
     @Update
     suspend fun update(reminder: Reminder)

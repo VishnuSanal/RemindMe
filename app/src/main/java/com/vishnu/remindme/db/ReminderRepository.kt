@@ -8,8 +8,8 @@ class ReminderRepository @Inject constructor(private val reminderDAO: ReminderDA
 
     val allNotes: Flow<List<Reminder>> = reminderDAO.getAllEntries()
 
-    suspend fun insert(reminder: Reminder) {
-        reminderDAO.insert(reminder)
+    suspend fun insert(reminder: Reminder): Long {
+        return reminderDAO.insert(reminder)
     }
 
     suspend fun update(reminder: Reminder) {

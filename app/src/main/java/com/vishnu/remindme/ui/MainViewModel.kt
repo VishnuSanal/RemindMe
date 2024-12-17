@@ -3,6 +3,7 @@ package com.vishnu.emotiontracker.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.vishnu.remindme.alarm.cancelAlarm
 import com.vishnu.remindme.alarm.scheduleAlarm
 import com.vishnu.remindme.db.ReminderRepository
 import com.vishnu.remindme.model.Reminder
@@ -31,30 +32,36 @@ class MainViewModel @Inject constructor(
     }
 
     fun addNewReminder(reminder: Reminder) {
-        scheduleAlarm(context = application, reminder = reminder)
-        insert(reminder)
+        viewModelScope.launch {
+            val _id = insert(reminder)
+            reminder._id = _id
+            scheduleAlarm(context = application.applicationContext, reminder = reminder)
+        }
     }
 
     fun updateReminder(reminder: Reminder) {
-        scheduleAlarm(context = application, reminder = reminder)
-        update(reminder)
-    }
-
-    private fun insert(reminder: Reminder) {
         viewModelScope.launch {
-            repository.insert(reminder)
+            scheduleAlarm(context = application.applicationContext, reminder = reminder)
+            update(reminder)
         }
     }
 
-    private fun update(reminder: Reminder) {
+    fun deleteReminder(reminder: Reminder) {
         viewModelScope.launch {
-            repository.update(reminder)
+            cancelAlarm(context = application.applicationContext, reminder = reminder)
+            delete(reminder)
         }
     }
 
-    fun delete(reminder: Reminder) {
-        viewModelScope.launch {
-            repository.delete(reminder)
-        }
+    private suspend fun insert(reminder: Reminder): Long {
+        return repository.insert(reminder)
+    }
+
+    private suspend fun update(reminder: Reminder) {
+        repository.update(reminder)
+    }
+
+    private suspend fun delete(reminder: Reminder) {
+        repository.delete(reminder)
     }
 }

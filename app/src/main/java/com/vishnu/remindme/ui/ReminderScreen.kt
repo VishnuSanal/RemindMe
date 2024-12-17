@@ -2,6 +2,7 @@ package com.vishnu.remindme.ui
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -94,7 +96,7 @@ fun HomeScreen(
                 dialogReminderItem = it
                 showDialog = true
             },
-            onItemDelete = { viewModel.delete(it) }
+            onItemDelete = { viewModel.deleteReminder(it) }
         )
     }
 
@@ -252,6 +254,7 @@ fun ReminderList(
             .padding(8.dp)
     ) {
         items(reminderEntries) {
+            Log.e("vishnu", "ReminderList: $it")
             ReminderCard(
                 reminder = it,
                 onClick = { onItemClick(it) },
@@ -276,51 +279,69 @@ fun ReminderCard(
         colors = CardDefaults.cardColors(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(
+
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            Text(
-                modifier = Modifier.padding(4.dp),
-                text = reminder.title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            reminder.description?.let {
+            Column() {
                 Text(
-                    modifier = Modifier
-                        .padding(4.dp),
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2,
+                    modifier = Modifier.padding(4.dp),
+                    text = reminder.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+
+                reminder.description?.let {
+                    Text(
+                        modifier = Modifier
+                            .padding(4.dp),
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        modifier = Modifier.padding(4.dp),
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = "Due Date",
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+                    Text(
+                        modifier = Modifier.padding(4.dp),
+                        text = Utils.parseMillisToDeviceTimeFormat(
+                            LocalContext.current,
+                            reminder.dueDate
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    modifier = Modifier.padding(4.dp),
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = "Due Date",
-                    tint = MaterialTheme.colorScheme.secondary
-                )
-                Text(
-                    modifier = Modifier.padding(4.dp),
-                    text = Utils.parseMillisToDeviceTimeFormat(
-                        LocalContext.current,
-                        reminder.dueDate
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
+            Spacer(Modifier.weight(1f))
+
+            Icon(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .clickable {
+                        onDelete()
+                    },
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Delete",
+                tint = MaterialTheme.colorScheme.onBackground
+            )
         }
     }
 }
