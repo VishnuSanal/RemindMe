@@ -7,7 +7,6 @@ import com.vishnu.remindme.model.Reminder
 import com.vishnu.remindme.ui.AlarmActivity
 import com.vishnu.remindme.utils.Constants
 
-
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val reminder =

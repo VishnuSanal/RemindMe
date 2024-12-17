@@ -3,8 +3,7 @@ package com.vishnu.emotiontracker.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.vishnu.remindme.alarm.cancelAlarm
-import com.vishnu.remindme.alarm.scheduleAlarm
+import com.vishnu.remindme.alarm.AlarmUtils
 import com.vishnu.remindme.db.ReminderRepository
 import com.vishnu.remindme.model.Reminder
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,20 +34,20 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             val _id = insert(reminder)
             reminder._id = _id
-            scheduleAlarm(context = application.applicationContext, reminder = reminder)
+            AlarmUtils.scheduleAlarm(context = application.applicationContext, reminder = reminder)
         }
     }
 
     fun updateReminder(reminder: Reminder) {
         viewModelScope.launch {
-            scheduleAlarm(context = application.applicationContext, reminder = reminder)
+            AlarmUtils.scheduleAlarm(context = application.applicationContext, reminder = reminder)
             update(reminder)
         }
     }
 
     fun deleteReminder(reminder: Reminder) {
         viewModelScope.launch {
-            cancelAlarm(context = application.applicationContext, reminder = reminder)
+            AlarmUtils.cancelAlarm(context = application.applicationContext, reminder = reminder)
             delete(reminder)
         }
     }
