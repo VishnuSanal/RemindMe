@@ -4,6 +4,7 @@ import android.media.AudioAttributes
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -51,6 +52,7 @@ class AlarmActivity : ComponentActivity() {
     private lateinit var ringtone: Ringtone
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.e("vishnu", "onCreate() called with: savedInstanceState = $savedInstanceState")
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 

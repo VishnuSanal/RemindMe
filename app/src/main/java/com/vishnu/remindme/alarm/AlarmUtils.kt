@@ -12,40 +12,37 @@ class AlarmUtils {
         fun scheduleAlarm(context: Context, reminder: Reminder) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-            val intent = Intent(context, AlarmReceiver::class.java).apply {
-                putExtra(Constants.REMINDER_ITEM_KEY, reminder)
-            }
-
-            val pendingIntent = PendingIntent.getBroadcast(
-                context,
-                reminder._id.toInt(),
-                intent,
-                PendingIntent.FLAG_IMMUTABLE
-            )
-
             alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
                 reminder.dueDate,
-                pendingIntent
+                getPendingIntent(
+                    context,
+                    reminder
+                )
             )
         }
 
         fun cancelAlarm(context: Context, reminder: Reminder) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
+            alarmManager.cancel(
+                getPendingIntent(
+                    context,
+                    reminder
+                )
+            )
+        }
+
+        private fun getPendingIntent(context: Context, reminder: Reminder): PendingIntent {
             val intent = Intent(context, AlarmReceiver::class.java).apply {
                 putExtra(Constants.REMINDER_ITEM_KEY, reminder)
             }
 
-            val pendingIntent = PendingIntent.getBroadcast(
+            return PendingIntent.getBroadcast(
                 context,
                 reminder._id.toInt(),
                 intent,
-                PendingIntent.FLAG_IMMUTABLE
-            )
-
-            alarmManager.cancel(
-                pendingIntent
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         }
     }
