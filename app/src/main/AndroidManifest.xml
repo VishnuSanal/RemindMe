@@ -5,6 +5,11 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:name=".RemindMe"
         android:allowBackup="true"
@@ -22,6 +27,10 @@
             android:enabled="true"
             android:exported="true" />
 
+        <service
+            android:name=".service.AlarmForegroundService"
+            android:foregroundServiceType="shortService" />
+
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
@@ -36,6 +45,8 @@
         <activity
             android:name=".ui.AlarmActivity"
             android:exported="true"
+            android:launchMode="singleInstancePerTask"
+            android:taskAffinity=""
             android:theme="@style/Theme.RemindMe" />
     </application>
 
