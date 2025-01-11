@@ -3,8 +3,8 @@ package com.vishnu.remindme.ui
 import android.media.AudioAttributes
 import android.media.Ringtone
 import android.media.RingtoneManager
+import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -52,9 +52,24 @@ class AlarmActivity : ComponentActivity() {
     private lateinit var ringtone: Ringtone
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.e("vishnu", "onCreate() called with: savedInstanceState = $savedInstanceState")
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val reminder =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra<Reminder>(
+                    Constants.REMINDER_ITEM_KEY,
+                    Reminder::class.java
+                )
+            } else {
+                intent.getParcelableExtra<Reminder>(Constants.REMINDER_ITEM_KEY)
+            }
+
+        if (reminder == null) {
+            if (ringtone.isPlaying)
+                ringtone.stop()
+            finish()
+        }
 
         var ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
 
@@ -72,20 +87,17 @@ class AlarmActivity : ComponentActivity() {
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build()
         )
-        ringtone.isLooping = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            ringtone.isLooping = true
+        }
         ringtone.play()
 
-        val reminder =
-            intent.getParcelableExtra<Reminder>(Constants.REMINDER_ITEM_KEY, Reminder::class.java)
-                ?: Reminder(-1, "Pet the Cat", "Lorem ipsum", 0L)
-
         setContent {
-
             RemindMeTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     AlarmScreen(
                         modifier = Modifier.padding(innerPadding),
-                        reminder = reminder,
+                        reminder = reminder!!,
                         onDismiss = {
                             ringtone.stop()
                             finish()
