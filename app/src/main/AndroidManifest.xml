@@ -10,6 +10,8 @@
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application
         android:name=".RemindMe"
         android:allowBackup="true"
@@ -26,6 +28,15 @@
             android:name=".alarm.AlarmReceiver"
             android:enabled="true"
             android:exported="true" />
+
+        <receiver
+            android:name=".alarm.BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".service.AlarmForegroundService"

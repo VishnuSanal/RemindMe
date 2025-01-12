@@ -22,4 +22,8 @@ interface ReminderDAO {
 
     @Query("SELECT * FROM reminder_items ORDER BY dueDate DESC")
     fun getAllEntries(): Flow<List<Reminder>>
+
+    // only to be used from the startup reciever. use #getAllEntries elsewhere!
+    @Query("SELECT * FROM reminder_items ORDER BY dueDate DESC")
+    fun reminders(): List<Reminder>
 }
