@@ -1,1 +1,9 @@
-Set alarms for a specific date in the future (alarm, not a reminder!)
+Have you found yourself in a situation where you wanted a *strong* reminder to something someday in the future?!
+
+A reminder wouldn't really do since it would just give you a notification, an e-mail, or a small _pling_ which can get lost in the abyss of notifications we receive every day.
+
+Have you thought, "Wish I could set an alarm for a future day/time"?
+
+Don't worry, RemindMe! Got you covered.
+
+PS: `SYSTEM_ALERT_WINDOW` permission is used because Android wouldn't let me start an activity from the background. Hence, I display a transparent system overlay for a very small duration (500 ms), then open the alarm activity as soon as the overlay gets drawn, and close the overlay later.

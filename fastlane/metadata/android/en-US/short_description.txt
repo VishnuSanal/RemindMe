@@ -1,1 +1,1 @@
-Set alarms for a specific date in the future
+Set alarms for a specific date in the future (alarm, not a reminder!).
