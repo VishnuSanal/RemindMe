@@ -24,6 +24,15 @@
 
 <hr>
 
+## Enjoying RemindMe? Consider Supporting!
+Consider donating to support the development! It requires a lot of time and effort to develop the copylefted libre software app, gratis and ad-free. :D
+
+<p align="center">
+  <a href="https://www.buymeacoffee.com/VishnuSanal">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60px">
+  </a>
+</p>
+
 ## Screenshots
 
 <p align="center">
@@ -33,3 +42,6 @@
 | Home | Alarm |
 
 </p>
+
+## License
+[![GNU GPLv3](https://www.gnu.org/graphics/gplv3-127x51.png)](https://www.gnu.org/licenses/gpl-3.0.en.html)
