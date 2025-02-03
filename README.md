@@ -10,6 +10,18 @@
 	Set alarms for a specific date in the future (alarm, not a reminder!)
 </p>
 
+<p align="center">
+	
+<a href='https://apt.izzysoft.de/fdroid/index/apk/com.vishnu.remindme'>
+	<img alt='Get it on IzzyOnDroid' src='https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png' height="100px" />
+</a>	
+
+<a href="https://github.com/VishnuSanal/RemindMe/releases/">
+	<img alt="Get it on Github" src="https://github.com/VishnuSanal/Quotes/assets/50027064/c6777889-90a3-4a72-b138-9735822933ab" height="100px">
+</a>
+
+</p>
+
 <hr>
 
 ## Screenshots
