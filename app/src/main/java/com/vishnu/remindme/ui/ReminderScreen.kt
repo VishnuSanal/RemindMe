@@ -78,6 +78,7 @@ fun HomeScreen(
 
             IconButton(
                 onClick = {
+                    dialogReminderItem = null
                     showDialog = true
                 },
                 content = {
