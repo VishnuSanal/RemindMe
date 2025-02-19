@@ -22,7 +22,8 @@ class BootReceiver : BroadcastReceiver() {
                 val reminders = reminderDAO.reminders()
 
                 reminders.forEach {
-                    AlarmUtils.scheduleAlarm(context, it)
+                    if (it.dueDate >= System.currentTimeMillis())
+                        AlarmUtils.scheduleAlarm(context, it)
                 }
             }
         }
