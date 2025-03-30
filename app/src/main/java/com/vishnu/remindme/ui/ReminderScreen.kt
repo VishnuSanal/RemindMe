@@ -1,7 +1,6 @@
 package com.vishnu.remindme.ui
 
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,24 +11,37 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDefaults
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,22 +60,22 @@ import com.vishnu.remindme.R
 import com.vishnu.remindme.model.Reminder
 import com.vishnu.remindme.utils.Utils
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     modifier: Modifier,
     viewModel: MainViewModel = hiltViewModel(),
 ) {
-    var showDialog by remember { mutableStateOf(false) }
+    var showBottomSheet by remember { mutableStateOf(false) }
     var dialogReminderItem by remember { mutableStateOf<Reminder?>(null) }
+    val bottomSheetState = rememberModalBottomSheetState()
 
     Column(modifier) {
-
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -70,7 +83,7 @@ fun HomeScreen(
         ) {
             Text(
                 text = LocalContext.current.getString(R.string.app_name),
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
             )
 
@@ -79,13 +92,13 @@ fun HomeScreen(
             IconButton(
                 onClick = {
                     dialogReminderItem = null
-                    showDialog = true
+                    showBottomSheet = true
                 },
                 content = {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Add New",
-                        tint = MaterialTheme.colorScheme.secondary
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             )
@@ -94,18 +107,18 @@ fun HomeScreen(
         ReminderList(
             onItemClick = {
                 dialogReminderItem = it
-                showDialog = true
+                showBottomSheet = true
             },
             onItemDelete = { viewModel.deleteReminder(it) }
         )
     }
 
-    if (showDialog) {
-        AlarmDialog(
+    if (showBottomSheet) {
+        ReminderBottomSheet(
+            bottomSheetState = bottomSheetState,
             reminder = dialogReminderItem,
-            onDismiss = { showDialog = false },
+            onDismiss = { showBottomSheet = false },
             onSetAlarm = { title, description, dueDate ->
-
                 val reminder = Reminder(
                     title = title,
                     description = description,
@@ -119,125 +132,223 @@ fun HomeScreen(
                     viewModel.updateReminder(reminder)
                 }
 
-                showDialog = false
+                showBottomSheet = false
             }
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlarmDialog(
+fun ReminderBottomSheet(
+    bottomSheetState: SheetState,
     onDismiss: () -> Unit,
     onSetAlarm: (String, String?, Long) -> Unit,
     reminder: Reminder?,
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf<String?>(null) }
-    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
-    var selectedTime by remember { mutableStateOf(LocalTime.now()) }
 
-    var dueDate by remember { mutableStateOf(LocalDateTime.now()) }
-    var validInput by remember { mutableStateOf(false) }
+    var dueDateTime by remember { mutableStateOf(LocalDateTime.now()) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
 
-    LaunchedEffect(null) {
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = dueDateTime.toInstant(ZoneOffset.UTC).toEpochMilli()
+    )
+
+    val timePickerState = rememberTimePickerState(
+        initialHour = dueDateTime.hour,
+        initialMinute = dueDateTime.minute,
+        is24Hour = true
+    )
+
+    val validInput by remember {
+        derivedStateOf {
+            dueDateTime > LocalDateTime.now() && title.isNotBlank()
+        }
+    }
+
+    LaunchedEffect(reminder) {
         if (reminder != null) {
             title = reminder.title
             description = reminder.description
 
-            dueDate = LocalDateTime.ofInstant(
+            dueDateTime = LocalDateTime.ofInstant(
                 Instant.ofEpochMilli(reminder.dueDate),
                 ZoneId.systemDefault()
-            );
-            selectedDate = dueDate.toLocalDate()
-            selectedTime = dueDate.toLocalTime()
+            )
         }
     }
 
-    validInput = dueDate > LocalDateTime.now() && title.isNotBlank()
-
-    AlertDialog(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = {
-            Text("Set Alarm")
-        },
-        text = {
-            Column(
+        sheetState = bottomSheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = if (reminder == null) "Add New Reminder" else "Edit Reminder",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Title") },
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                value = description ?: "",
+                onValueChange = { description = it },
+                label = { Text("Description") },
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showDatePicker = true },
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                OutlinedTextField(
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Title") },
+                Icon(
+                    painter = painterResource(R.drawable.ic_calendar),
+                    contentDescription = "Select Date",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(end = 16.dp)
                 )
-                OutlinedTextField(
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                    value = description ?: "",
-                    onValueChange = { description = it },
-                    label = { Text("Description") },
+                Text(
+                    text = "Date: ${dueDateTime.toLocalDate()}",
+                    style = MaterialTheme.typography.bodyLarge
                 )
-                DatePickerField(selectedDate, onDateChange = {
-                    selectedDate = it
-                    dueDate = LocalDateTime.of(selectedDate, selectedTime)
-                })
-                TimePickerField(selectedTime, onTimeChange = {
-                    selectedTime = it
-                    dueDate = LocalDateTime.of(selectedDate, selectedTime)
-                })
             }
-        },
-        confirmButton = @Composable {
-            TextButton(
-                onClick = {
-                    onSetAlarm(
-                        title.trim(),
-                        description,
-                        dueDate
-                            .atZone(ZoneId.systemDefault())
-                            .toInstant()
-                            .toEpochMilli()
-                    )
-                },
-                enabled = validInput
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showTimePicker = true },
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Set Alarm")
+                Icon(
+                    painter = painterResource(R.drawable.ic_alarm),
+                    contentDescription = "Select Time",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(end = 16.dp)
+                )
+                Text(
+                    text = "Time: ${formatTime(dueDateTime.toLocalTime())}",
+                    style = MaterialTheme.typography.bodyLarge
+                )
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = 24.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text("Cancel")
+                }
+
+                Button(
+                    onClick = {
+                        onSetAlarm(
+                            title.trim(),
+                            description?.takeIf { it.isNotBlank() },
+                            dueDateTime
+                                .atZone(ZoneId.systemDefault())
+                                .toInstant()
+                                .toEpochMilli()
+                        )
+                    },
+                    enabled = validInput
+                ) {
+                    Text("Save")
+                }
             }
         }
-    )
-}
+    }
 
-@Composable
-fun DatePickerField(selectedDate: LocalDate, onDateChange: (LocalDate) -> Unit) {
-    val context = LocalContext.current
-    val datePicker = DatePickerDialog(context, { _, year, month, dayOfMonth ->
-        onDateChange(LocalDate.of(year, month + 1, dayOfMonth))
-    }, selectedDate.year, selectedDate.monthValue - 1, selectedDate.dayOfMonth)
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val newDate = Instant.ofEpochMilli(millis)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                            dueDateTime = LocalDateTime.of(newDate, dueDateTime.toLocalTime())
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("Confirm")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 
-    OutlinedButton(onClick = { datePicker.show() }, modifier = Modifier.fillMaxWidth()) {
-        Text("Select Date: $selectedDate")
+    if (showTimePicker) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            title = { Text("Select Time") },
+            text = {
+                TimePicker(
+                    state = timePickerState,
+                    colors = TimePickerDefaults.colors(
+                        timeSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary,
+                        timeSelectorSelectedContentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val newTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
+                        dueDateTime = LocalDateTime.of(dueDateTime.toLocalDate(), newTime)
+                        showTimePicker = false
+                    }
+                ) {
+                    Text("Confirm")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
 @Composable
-fun TimePickerField(selectedTime: LocalTime, onTimeChange: (LocalTime) -> Unit) {
-    val context = LocalContext.current
-    val timePicker = TimePickerDialog(context, { _, hourOfDay, minute ->
-        onTimeChange(LocalTime.of(hourOfDay, minute))
-    }, selectedTime.hour, selectedTime.minute, true)
-
-    OutlinedButton(onClick = { timePicker.show() }, modifier = Modifier.fillMaxWidth()) {
-        Text("Select Time: $selectedTime")
-    }
+fun formatTime(time: LocalTime): String {
+    return String.format("%02d:%02d", time.hour, time.minute)
 }
-
 
 @Composable
 fun ReminderList(
@@ -263,7 +374,6 @@ fun ReminderList(
     }
 }
 
-
 @Composable
 fun ReminderCard(
     reminder: Reminder,
@@ -276,9 +386,8 @@ fun ReminderCard(
             .padding(8.dp)
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -286,9 +395,8 @@ fun ReminderCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Column() {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    modifier = Modifier.padding(4.dp),
                     text = reminder.title,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
@@ -296,51 +404,47 @@ fun ReminderCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                reminder.description?.let {
+                AnimatedVisibility(visible = !reminder.description.isNullOrBlank()) {
                     Text(
-                        modifier = Modifier
-                            .padding(4.dp),
-                        text = it,
+                        modifier = Modifier.padding(top = 4.dp),
+                        text = reminder.description ?: "",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
 
                 Row(
+                    modifier = Modifier.padding(top = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        modifier = Modifier.padding(4.dp),
                         imageVector = Icons.Default.DateRange,
                         contentDescription = "Due Date",
-                        tint = MaterialTheme.colorScheme.secondary
+                        tint = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.padding(end = 4.dp)
                     )
                     Text(
-                        modifier = Modifier.padding(4.dp),
                         text = Utils.parseMillisToDeviceTimeFormat(
                             LocalContext.current,
                             reminder.dueDate
                         ),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.secondary
                     )
                 }
             }
 
-            Spacer(Modifier.weight(1f))
-
-            Icon(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .clickable {
-                        onDelete()
-                    },
-                imageVector = Icons.Default.Delete,
-                contentDescription = "Delete",
-                tint = MaterialTheme.colorScheme.onBackground
-            )
+            IconButton(
+                onClick = { onDelete() }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
         }
     }
 }
