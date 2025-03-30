@@ -12,14 +12,25 @@ class AlarmUtils {
         fun scheduleAlarm(context: Context, reminder: Reminder) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                reminder.dueDate,
-                getPendingIntent(
-                    context,
-                    reminder
+            if (reminder.recurrencePattern == null)
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    reminder.dueDate,
+                    getPendingIntent(
+                        context,
+                        reminder
+                    )
                 )
-            )
+            else
+                alarmManager.setRepeating(
+                    AlarmManager.RTC_WAKEUP,
+                    reminder.dueDate,
+                    reminder.recurrencePattern.intervalMillis,
+                    getPendingIntent(
+                        context,
+                        reminder
+                    )
+                )
         }
 
         fun cancelAlarm(context: Context, reminder: Reminder) {

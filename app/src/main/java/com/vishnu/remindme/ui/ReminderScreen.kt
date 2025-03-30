@@ -185,6 +185,7 @@ fun HomeScreen(
                     title = title,
                     description = description,
                     dueDate = dueDate,
+                    recurrencePattern = recurrencePattern
                 )
 
                 if (dialogReminderItem == null)
