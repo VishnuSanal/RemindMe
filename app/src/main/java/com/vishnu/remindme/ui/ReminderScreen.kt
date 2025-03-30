@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -30,6 +31,8 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -69,6 +72,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.vishnu.emotiontracker.ui.MainViewModel
 import com.vishnu.remindme.R
+import com.vishnu.remindme.model.RecurrencePattern
 import com.vishnu.remindme.model.Reminder
 import com.vishnu.remindme.utils.Utils
 import java.time.Instant
@@ -176,7 +180,7 @@ fun HomeScreen(
             bottomSheetState = bottomSheetState,
             reminder = dialogReminderItem,
             onDismiss = { showBottomSheet = false },
-            onSetAlarm = { title, description, dueDate ->
+            onSetAlarm = { title, description, dueDate, recurrencePattern ->
                 val reminder = Reminder(
                     title = title,
                     description = description,
@@ -240,7 +244,7 @@ fun EmptyRemindersView(modifier: Modifier = Modifier) {
 fun ReminderBottomSheet(
     bottomSheetState: SheetState,
     onDismiss: () -> Unit,
-    onSetAlarm: (String, String?, Long) -> Unit,
+    onSetAlarm: (String, String?, Long, RecurrencePattern?) -> Unit,
     reminder: Reminder?,
 ) {
     var title by remember { mutableStateOf("") }
@@ -249,6 +253,10 @@ fun ReminderBottomSheet(
     var dueDateTime by remember { mutableStateOf(LocalDateTime.now()) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+
+    // Add recurrence pattern state
+    var recurrencePattern by remember { mutableStateOf<RecurrencePattern?>(null) }
+    var showRecurrenceMenu by remember { mutableStateOf(false) }
 
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = dueDateTime.toInstant(ZoneOffset.UTC).toEpochMilli(),
@@ -269,6 +277,7 @@ fun ReminderBottomSheet(
         if (reminder != null) {
             title = reminder.title
             description = reminder.description
+            recurrencePattern = reminder.recurrencePattern
 
             dueDateTime = LocalDateTime.ofInstant(
                 Instant.ofEpochMilli(reminder.dueDate),
@@ -353,6 +362,44 @@ fun ReminderBottomSheet(
                 )
             }
 
+            // Recurrence pattern row
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showRecurrenceMenu = true },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_calendar),
+                        contentDescription = "Set Recurrence",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(end = 16.dp)
+                    )
+                    Text(
+                        text = "Repeat: ${recurrencePattern?.displayName ?: "Never"}",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = showRecurrenceMenu,
+                    onDismissRequest = { showRecurrenceMenu = false },
+                    modifier = Modifier.width(240.dp)
+                ) {
+                    RecurrencePattern.entries.forEach { pattern ->
+                        DropdownMenuItem(
+                            text = { Text(pattern.displayName) },
+                            onClick = {
+                                recurrencePattern =
+                                    if (pattern == RecurrencePattern.NONE) null else pattern
+                                showRecurrenceMenu = false
+                            }
+                        )
+                    }
+                }
+            }
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -374,7 +421,8 @@ fun ReminderBottomSheet(
                             dueDateTime
                                 .atZone(ZoneId.systemDefault())
                                 .toInstant()
-                                .toEpochMilli()
+                                .toEpochMilli(),
+                            recurrencePattern
                         )
                     },
                     enabled = validInput

@@ -27,7 +27,9 @@ object AppModule {
             context,
             ReminderDatabase::class.java,
             "reminder_items"
-        ).build()
+        )
+            .addMigrations(ReminderDatabase.MIGRATION_1_2)
+            .build()
     }
 
     @Provides
