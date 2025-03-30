@@ -26,26 +26,39 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.vishnu.remindme.model.Reminder
 import com.vishnu.remindme.ui.theme.RemindMeTheme
 import com.vishnu.remindme.utils.Constants
-
+import kotlinx.coroutines.delay
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class AlarmActivity : ComponentActivity() {
 
@@ -55,20 +68,18 @@ class AlarmActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val reminder =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                intent.getParcelableExtra<Reminder>(
-                    Constants.REMINDER_ITEM_KEY,
-                    Reminder::class.java
-                )
-            } else {
-                intent.getParcelableExtra<Reminder>(Constants.REMINDER_ITEM_KEY)
-            }
+        val reminder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra<Reminder>(
+                Constants.REMINDER_ITEM_KEY, Reminder::class.java
+            )
+        } else {
+            intent.getParcelableExtra<Reminder>(Constants.REMINDER_ITEM_KEY)
+        }
 
         if (reminder == null) {
-            if (ringtone.isPlaying)
-                ringtone.stop()
+//            reminder = Reminder(0, "Title", null, System.currentTimeMillis()) // debug
             finish()
+            return
         }
 
         var ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
@@ -82,10 +93,8 @@ class AlarmActivity : ComponentActivity() {
 
         ringtone = RingtoneManager.getRingtone(applicationContext, ringtoneUri)
         ringtone.setAudioAttributes(
-            AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_ALARM)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .build()
+            AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
         )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             ringtone.isLooping = true
@@ -97,7 +106,7 @@ class AlarmActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     AlarmScreen(
                         modifier = Modifier.padding(innerPadding),
-                        reminder = reminder!!,
+                        reminder = reminder,
                         onDismiss = {
                             ringtone.stop()
                             finish()
@@ -105,108 +114,161 @@ class AlarmActivity : ComponentActivity() {
                         onSnooze = {
                             ringtone.stop()
                             finish()
-                        }
-                    )
+                        })
                 }
             }
-
-
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        if (ringtone.isPlaying)
-            ringtone.stop()
+        if (::ringtone.isInitialized && ringtone.isPlaying) ringtone.stop()
     }
 }
 
 @Composable
 fun AlarmScreen(
-    reminder: Reminder,
-    onDismiss: () -> Unit,
-    onSnooze: () -> Unit,
-    modifier: Modifier
+    reminder: Reminder, onDismiss: () -> Unit, onSnooze: () -> Unit, modifier: Modifier = Modifier
 ) {
+    val dateTime = LocalDateTime.ofInstant(
+        Instant.ofEpochMilli(reminder.dueDate), ZoneId.systemDefault()
+    )
+    val formattedTime = dateTime.format(DateTimeFormatter.ofPattern("h:mm a"))
+    val formattedDate = dateTime.format(DateTimeFormatter.ofPattern("EEEE, MMMM d"))
+
+    var seconds by remember { mutableIntStateOf(0) }
+    LaunchedEffect(key1 = true) {
+        while (true) {
+            delay(1000)
+            seconds++
+        }
+    }
+
     Surface(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
     ) {
         Column(
-            verticalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement.spacedBy(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(24.dp)
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             AlarmIcon()
 
             Text(
-                text = reminder.title,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
+                text = formattedTime,
+                style = MaterialTheme.typography.displayMedium,
                 color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(16.dp)
+                fontWeight = FontWeight.Bold
             )
-            reminder.description?.let {
-                Text(
-                    text = it,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(8.dp)
+
+            Text(
+                text = formattedDate,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = reminder.title,
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    reminder.description?.takeIf { it.isNotBlank() }?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
             }
+
+            Text(
+                text = "Alarm active for ${formatSeconds(seconds)}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
 
             Spacer(modifier = Modifier.weight(1f))
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(
                     onClick = onDismiss,
-                    colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 ) {
                     Text(
-                        text = "Dismiss",
-                        color = MaterialTheme.colorScheme.onPrimary
+                        text = "Dismiss", style = MaterialTheme.typography.titleMedium
                     )
                 }
 
-//                Spacer(modifier = Modifier.height(16.dp))
-
-//                OutlinedButton(
+//                FilledTonalButton(
 //                    onClick = onSnooze,
-//                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
 //                    modifier = Modifier
 //                        .fillMaxWidth()
-//                        .padding(horizontal = 16.dp)
+//                        .height(56.dp),
+//                    colors = ButtonDefaults.filledTonalButtonColors(
+//                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+//                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+//                    )
 //                ) {
-//                    Text(text = "Snooze")
+//                    Icon(
+//                        imageVector = Icons.Default.ExitToApp,
+//                        contentDescription = "Snooze",
+//                        modifier = Modifier.padding(end = 8.dp)
+//                    )
+//                    Text(
+//                        text = "Snooze for 5 minutes", style = MaterialTheme.typography.titleMedium
+//                    )
 //                }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
 fun AlarmIcon() {
-    // Animation for pulsating effect
-    val infiniteTransition = rememberInfiniteTransition(label = "infiniteTransition")
+    val infiniteTransition = rememberInfiniteTransition(label = "alarmPulse")
     val scale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.2f,
-        animationSpec = infiniteRepeatable(
+        initialValue = 1f, targetValue = 1.2f, animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 1000, easing = LinearOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
-        ), label = "scale"
+        ), label = "pulseScale"
     )
 
     Box(
@@ -214,17 +276,22 @@ fun AlarmIcon() {
             .padding(16.dp)
             .size(120.dp)
             .scale(scale)
+            .clip(CircleShape)
             .background(
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f),
-                shape = CircleShape
-            ),
-        contentAlignment = Alignment.Center
+                color = MaterialTheme.colorScheme.primaryContainer,
+            ), contentAlignment = Alignment.Center
     ) {
         Icon(
-            imageVector = Icons.Default.DateRange,
-            contentDescription = "Alarm Icon",
-            tint = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(60.dp)
+            imageVector = Icons.Default.Notifications,
+            contentDescription = "Alarm",
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.size(64.dp)
         )
     }
+}
+
+private fun formatSeconds(totalSeconds: Int): String {
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return String.format(Locale.getDefault(), "%d:%02d", minutes, seconds)
 }
