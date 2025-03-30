@@ -1,2 +1,0 @@
-- support reproducible builds
-- update metadata
