@@ -325,7 +325,12 @@ fun ReminderBottomSheet(
                     modifier = Modifier.padding(end = 16.dp)
                 )
                 Text(
-                    text = "Date: ${dueDateTime.toLocalDate()}",
+                    text = "Date: ${
+                        Utils.formatDate(
+                            LocalContext.current,
+                            dueDateTime.toLocalDate()
+                        )
+                    }",
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
