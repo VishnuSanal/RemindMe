@@ -69,6 +69,7 @@ class AlarmActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+//        val reminder = Reminder(0, "Title", "Description", System.currentTimeMillis()) // debug
         val reminder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra<Reminder>(
                 Constants.REMINDER_ITEM_KEY, Reminder::class.java
@@ -78,7 +79,6 @@ class AlarmActivity : ComponentActivity() {
         }
 
         if (reminder == null) {
-//            reminder = Reminder(0, "Title", null, System.currentTimeMillis()) // debug
             finish()
             return
         }
@@ -183,14 +183,16 @@ fun AlarmScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
                         text = reminder.title,
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
                         maxLines = 2,
@@ -205,7 +207,6 @@ fun AlarmScreen(
                             textAlign = TextAlign.Center,
                             maxLines = 3,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
                 }
