@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,11 +54,11 @@ import androidx.compose.ui.unit.dp
 import com.vishnu.remindme.model.Reminder
 import com.vishnu.remindme.ui.theme.RemindMeTheme
 import com.vishnu.remindme.utils.Constants
+import com.vishnu.remindme.utils.Utils
 import kotlinx.coroutines.delay
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class AlarmActivity : ComponentActivity() {
@@ -130,11 +131,13 @@ class AlarmActivity : ComponentActivity() {
 fun AlarmScreen(
     reminder: Reminder, onDismiss: () -> Unit, onSnooze: () -> Unit, modifier: Modifier = Modifier
 ) {
-    val dateTime = LocalDateTime.ofInstant(
-        Instant.ofEpochMilli(reminder.dueDate), ZoneId.systemDefault()
-    )
-    val formattedTime = dateTime.format(DateTimeFormatter.ofPattern("h:mm a"))
-    val formattedDate = dateTime.format(DateTimeFormatter.ofPattern("EEEE, MMMM d"))
+    val dateTime = LocalDateTime
+        .ofInstant(
+            Instant.ofEpochMilli(reminder.dueDate),
+            ZoneId.systemDefault()
+        )
+    val formattedTime = Utils.formatTime(LocalContext.current, dateTime.toLocalTime())
+    val formattedDate = Utils.formatDate(LocalContext.current, dateTime.toLocalDate())
 
     var seconds by remember { mutableIntStateOf(0) }
     LaunchedEffect(key1 = true) {

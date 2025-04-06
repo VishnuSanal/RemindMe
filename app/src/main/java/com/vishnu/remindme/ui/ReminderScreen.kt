@@ -397,8 +397,11 @@ fun ReminderBottomSheet(
                 TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
-                            val newDate = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.systemDefault())
+                            val newDate = Instant
+                                .ofEpochMilli(millis)
+                                .atZone(ZoneOffset.UTC)
+                                .toLocalDate()
+                                .atStartOfDay()
                                 .toLocalDate()
                             dueDateTime = LocalDateTime.of(newDate, dueDateTime.toLocalTime())
                         }
