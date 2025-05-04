@@ -15,14 +15,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -61,7 +60,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -582,98 +580,131 @@ fun ReminderCard(
             Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Surface(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape),
-                    color = when {
-                        isOverdue -> MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
-                        else -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
-                    }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
+                    Icon(
+                        painter = painterResource(R.drawable.ic_calendar),
+                        contentDescription = "Due Date",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .size(20.dp)
+                            .padding(end = 4.dp)
+                    )
+
+                    Text(
+                        text = "Due:",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+
+                    Text(
+                        text = Utils.parseMillisToDeviceTimeFormat(context, reminder.dueDate),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                if (reminder.recurrencePattern != null || !isOverdue) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 0.dp)
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.ic_calendar),
-                            contentDescription = "Due Date",
-                            tint = when {
-                                isOverdue -> MaterialTheme.colorScheme.error
-                                else -> MaterialTheme.colorScheme.secondary
-                            },
-                            modifier = Modifier.size(20.dp)
+                            painter = if (reminder.recurrencePattern != null)
+                                painterResource(R.drawable.ic_repeat)
+                            else
+                                painterResource(R.drawable.ic_alarm),
+                            contentDescription = "Next Trigger",
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .padding(end = 4.dp)
+                        )
+
+                        Text(
+                            text = "Next:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+
+                        Text(
+                            text = Utils.parseMillisToDeviceTimeFormat(
+                                context,
+                                dueDateTime.atZone(ZoneId.systemDefault())
+                                    .toInstant()
+                                    .toEpochMilli()
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
 
-                Column(
-                    modifier = Modifier
-                        .padding(start = 12.dp)
-                        .weight(1f)
-                ) {
-                    Text(
-                        text = "Initial: ${
-                            Utils.parseMillisToDeviceTimeFormat(
-                                context,
-                                reminder.dueDate
-                            )
-                        }",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = when {
-                            isOverdue -> MaterialTheme.colorScheme.error
-                            else -> MaterialTheme.colorScheme.onSurface
+                if (reminder.recurrencePattern != null) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
+                            shape = MaterialTheme.shapes.small
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(8.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_repeat),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = reminder.recurrencePattern.displayName,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier.padding(start = 4.dp)
+                                )
+                            }
                         }
-                    )
-
-                    Text(
-                        text = "Next Trigger: ${
-                            Utils.parseMillisToDeviceTimeFormat(
-                                context, dueDateTime.atZone(ZoneId.systemDefault())
-                                    .toInstant()
-                                    .toEpochMilli()
-                            )
-                        }",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = when {
-                            isOverdue -> MaterialTheme.colorScheme.error
-                            else -> MaterialTheme.colorScheme.onSurface
-                        }
-                    )
-
-                    if (isOverdue) {
-                        Text(
-                            text = "Overdue",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.error
-                        )
                     }
                 }
 
                 if (isOverdue) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
-                        shape = MaterialTheme.shapes.small
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 4.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        Surface(
+                            color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
+                            shape = MaterialTheme.shapes.small
                         ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Info,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Text(
-                                text = "Past due",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.padding(start = 4.dp)
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Warning,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = "Overdue",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.padding(start = 4.dp)
+                                )
+                            }
                         }
                     }
                 }
