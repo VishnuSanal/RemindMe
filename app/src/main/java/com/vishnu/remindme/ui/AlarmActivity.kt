@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,11 +54,11 @@ import androidx.compose.ui.unit.dp
 import com.vishnu.remindme.model.Reminder
 import com.vishnu.remindme.ui.theme.RemindMeTheme
 import com.vishnu.remindme.utils.Constants
+import com.vishnu.remindme.utils.Utils
 import kotlinx.coroutines.delay
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class AlarmActivity : ComponentActivity() {
@@ -68,6 +69,7 @@ class AlarmActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+//        val reminder = Reminder(0, "Title", "Description", System.currentTimeMillis()) // debug
         val reminder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra<Reminder>(
                 Constants.REMINDER_ITEM_KEY, Reminder::class.java
@@ -77,7 +79,6 @@ class AlarmActivity : ComponentActivity() {
         }
 
         if (reminder == null) {
-//            reminder = Reminder(0, "Title", null, System.currentTimeMillis()) // debug
             finish()
             return
         }
@@ -130,11 +131,13 @@ class AlarmActivity : ComponentActivity() {
 fun AlarmScreen(
     reminder: Reminder, onDismiss: () -> Unit, onSnooze: () -> Unit, modifier: Modifier = Modifier
 ) {
-    val dateTime = LocalDateTime.ofInstant(
-        Instant.ofEpochMilli(reminder.dueDate), ZoneId.systemDefault()
-    )
-    val formattedTime = dateTime.format(DateTimeFormatter.ofPattern("h:mm a"))
-    val formattedDate = dateTime.format(DateTimeFormatter.ofPattern("EEEE, MMMM d"))
+    val dateTime = LocalDateTime
+        .ofInstant(
+            Instant.ofEpochMilli(reminder.dueDate),
+            ZoneId.systemDefault()
+        )
+    val formattedTime = Utils.formatTime(LocalContext.current, dateTime.toLocalTime())
+    val formattedDate = Utils.formatDate(LocalContext.current, dateTime.toLocalDate())
 
     var seconds by remember { mutableIntStateOf(0) }
     LaunchedEffect(key1 = true) {
@@ -180,14 +183,16 @@ fun AlarmScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
                         text = reminder.title,
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
                         maxLines = 2,
@@ -202,7 +207,6 @@ fun AlarmScreen(
                             textAlign = TextAlign.Center,
                             maxLines = 3,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
                 }

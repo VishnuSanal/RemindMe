@@ -335,7 +335,12 @@ fun ReminderBottomSheet(
                     modifier = Modifier.padding(end = 16.dp)
                 )
                 Text(
-                    text = "Date: ${dueDateTime.toLocalDate()}",
+                    text = "Date: ${
+                        Utils.formatDate(
+                            LocalContext.current,
+                            dueDateTime.toLocalDate()
+                        )
+                    }",
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -441,8 +446,11 @@ fun ReminderBottomSheet(
                 TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
-                            val newDate = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.systemDefault())
+                            val newDate = Instant
+                                .ofEpochMilli(millis)
+                                .atZone(ZoneOffset.UTC)
+                                .toLocalDate()
+                                .atStartOfDay()
                                 .toLocalDate()
                             dueDateTime = LocalDateTime.of(newDate, dueDateTime.toLocalTime())
                         }
