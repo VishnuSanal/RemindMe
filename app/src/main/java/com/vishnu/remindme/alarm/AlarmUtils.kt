@@ -6,31 +6,40 @@ import android.content.Context
 import android.content.Intent
 import com.vishnu.remindme.model.Reminder
 import com.vishnu.remindme.utils.Constants
+import java.util.Date
 
 class AlarmUtils {
     companion object {
         fun scheduleAlarm(context: Context, reminder: Reminder) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-            if (reminder.recurrencePattern == null)
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    reminder.dueDate,
-                    getPendingIntent(
-                        context,
-                        reminder
-                    )
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                reminder.dueDate,
+                getPendingIntent(
+                    context,
+                    reminder
                 )
-            else
-                alarmManager.setRepeating(
-                    AlarmManager.RTC_WAKEUP,
-                    reminder.dueDate,
-                    reminder.recurrencePattern.intervalMillis,
-                    getPendingIntent(
-                        context,
-                        reminder
-                    )
+            )
+        }
+
+        /** reschedules an alarm for the nearest (dueDate + intervalMillis) in the future. only for recurring alarms. */
+        fun rescheduleAlarm(context: Context, reminder: Reminder) {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+            var dueDate = reminder.dueDate
+
+            while (Date(dueDate).before(Date()))
+                dueDate = reminder.dueDate + reminder.recurrencePattern!!.intervalMillis
+
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                dueDate,
+                getPendingIntent(
+                    context,
+                    reminder
                 )
+            )
         }
 
         fun cancelAlarm(context: Context, reminder: Reminder) {
