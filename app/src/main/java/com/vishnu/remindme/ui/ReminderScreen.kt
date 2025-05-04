@@ -80,6 +80,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -510,11 +511,17 @@ fun ReminderCard(
     onDelete: () -> Unit
 ) {
     val context = LocalContext.current
-    val dueDateTime = LocalDateTime.ofInstant(
+    var dueDateTime = LocalDateTime.ofInstant(
         Instant.ofEpochMilli(reminder.dueDate),
         ZoneId.systemDefault()
     )
-    val isOverdue = dueDateTime.isBefore(LocalDateTime.now())
+
+    if (reminder.recurrencePattern != null)
+        while (dueDateTime.isBefore(LocalDateTime.now()))
+            dueDateTime =
+                dueDateTime.plus(reminder.recurrencePattern.intervalMillis, ChronoUnit.MILLIS)
+
+    val isOverdue = reminder.recurrencePattern == null && dueDateTime.isBefore(LocalDateTime.now())
 
     Card(
         modifier = Modifier
@@ -609,7 +616,27 @@ fun ReminderCard(
                         .weight(1f)
                 ) {
                     Text(
-                        text = Utils.parseMillisToDeviceTimeFormat(context, reminder.dueDate),
+                        text = "Initial: ${
+                            Utils.parseMillisToDeviceTimeFormat(
+                                context,
+                                reminder.dueDate
+                            )
+                        }",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = when {
+                            isOverdue -> MaterialTheme.colorScheme.error
+                            else -> MaterialTheme.colorScheme.onSurface
+                        }
+                    )
+
+                    Text(
+                        text = "Next Trigger: ${
+                            Utils.parseMillisToDeviceTimeFormat(
+                                context, dueDateTime.atZone(ZoneId.systemDefault())
+                                    .toInstant()
+                                    .toEpochMilli()
+                            )
+                        }",
                         style = MaterialTheme.typography.bodyMedium,
                         color = when {
                             isOverdue -> MaterialTheme.colorScheme.error
