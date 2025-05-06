@@ -13,6 +13,7 @@ import android.view.View
 import android.view.WindowManager
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
+import com.vishnu.remindme.alarm.AlarmUtils
 import com.vishnu.remindme.model.Reminder
 import com.vishnu.remindme.ui.AlarmActivity
 import com.vishnu.remindme.utils.Constants
@@ -46,6 +47,9 @@ class AlarmForegroundService : LifecycleService() {
             else
                 intent.getParcelableExtra<Reminder>(Constants.REMINDER_ITEM_KEY)
 
+        if (reminder!!.recurrencePattern != null)
+            AlarmUtils.rescheduleAlarm(this, reminder)
+
         if (Settings.canDrawOverlays(this)) {
             showOverlay(this) {
                 val activityIntent = Intent(this, AlarmActivity::class.java)
@@ -55,7 +59,7 @@ class AlarmForegroundService : LifecycleService() {
             }
         }
 
-        showNotification(reminder!!)
+        showNotification(reminder)
         stopSelf()
 
         return START_NOT_STICKY

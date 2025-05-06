@@ -13,4 +13,6 @@ data class Reminder(
     val title: String,
     val description: String?,
     val dueDate: Long,
+    val recurrencePattern: RecurrencePattern? = null
 ) : Parcelable
+
