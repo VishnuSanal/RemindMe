@@ -25,12 +25,16 @@ class AlarmUtils {
 
         /** reschedules an alarm for the nearest (dueDate + intervalMillis) in the future. only for recurring alarms. */
         fun rescheduleAlarm(context: Context, reminder: Reminder) {
+
+            if (reminder.recurrencePattern == null)
+                return
+
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
             var dueDate = reminder.dueDate
 
             while (Date(dueDate).before(Date()))
-                dueDate = reminder.dueDate + reminder.recurrencePattern!!.intervalMillis
+                dueDate = reminder.dueDate + reminder.recurrencePattern.intervalMillis
 
             alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,

@@ -24,6 +24,8 @@ class BootReceiver : BroadcastReceiver() {
                 reminders.forEach {
                     if (it.dueDate >= System.currentTimeMillis())
                         AlarmUtils.scheduleAlarm(context, it)
+                    else if (it.recurrencePattern != null)
+                        AlarmUtils.rescheduleAlarm(context, it)
                 }
             }
         }
