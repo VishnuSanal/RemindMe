@@ -34,7 +34,7 @@ class AlarmUtils {
             var dueDate = reminder.dueDate
 
             while (Date(dueDate).before(Date()))
-                dueDate = reminder.dueDate + reminder.recurrencePattern.intervalMillis
+                dueDate = dueDate + reminder.recurrencePattern.intervalMillis
 
             alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
