@@ -11,12 +11,20 @@
 </p>
 
 <p align="center">
-	
+
+<a href='https://f-droid.org/packages/com.vishnu.remindme/'>
+	<img alt='Get it on F-Droid' src='https://fdroid.gitlab.io/artwork/badge/get-it-on.png' height="100px" />
+</a>
+
 <a href='https://apt.izzysoft.de/fdroid/index/apk/com.vishnu.remindme'>
 	<img alt='Get it on IzzyOnDroid' src='https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png' height="100px" />
-</a>	
+</a>
 
-<a href="https://github.com/VishnuSanal/RemindMe/releases/">
+<a href='https://play.google.com/store/apps/details?id=com.vishnu.remindme'>
+	<img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png' height="100px" />
+</a>
+
+<a href="https://github.com/VishnuSanal/RemindMe/releases/latest">
 	<img alt="Get it on Github" src="https://github.com/VishnuSanal/Quotes/assets/50027064/c6777889-90a3-4a72-b138-9735822933ab" height="100px">
 </a>
 
