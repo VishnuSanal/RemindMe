@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.Warning
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -95,7 +94,6 @@ fun HomeScreen(
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
     var dialogReminderItem by remember { mutableStateOf<Reminder?>(null) }
-    var showDeleteConfirmation by remember { mutableStateOf<Reminder?>(null) }
     val bottomSheetState = rememberModalBottomSheetState()
     val reminderEntries by viewModel.reminderEntries.collectAsState()
     val pendingDeletion by viewModel.pendingDeletion.collectAsState()
@@ -196,7 +194,7 @@ fun HomeScreen(
                             dialogReminderItem = reminder
                             showBottomSheet = true
                         },
-                        onDelete = { showDeleteConfirmation = reminder }
+                        onDelete = { viewModel.deleteReminder(reminder) }
                     )
                 }
 
@@ -228,34 +226,6 @@ fun HomeScreen(
                 }
 
                 showBottomSheet = false
-            }
-        )
-    }
-
-    // Confirmation dialog for deletion
-    showDeleteConfirmation?.let { reminderToDelete ->
-        AlertDialog(
-            onDismissRequest = { showDeleteConfirmation = null },
-            title = { Text("Delete Reminder?") },
-            text = { 
-                Text("Are you sure you want to delete \"${reminderToDelete.title}\"? This action can be undone for 5 seconds after deletion.")
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.deleteReminder(reminderToDelete)
-                        showDeleteConfirmation = null
-                    }
-                ) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showDeleteConfirmation = null }
-                ) {
-                    Text("Cancel")
-                }
             }
         )
     }
