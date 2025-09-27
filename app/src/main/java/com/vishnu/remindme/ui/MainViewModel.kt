@@ -1,4 +1,4 @@
-package com.vishnu.emotiontracker.ui
+package com.vishnu.remindme.ui
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel

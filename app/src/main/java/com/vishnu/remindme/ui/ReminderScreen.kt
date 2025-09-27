@@ -74,7 +74,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.vishnu.emotiontracker.ui.MainViewModel
+import com.vishnu.remindme.ui.MainViewModel
 import com.vishnu.remindme.R
 import com.vishnu.remindme.model.RecurrencePattern
 import com.vishnu.remindme.model.Reminder
