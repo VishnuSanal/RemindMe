@@ -41,6 +41,11 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -91,7 +96,30 @@ fun HomeScreen(
     var dialogReminderItem by remember { mutableStateOf<Reminder?>(null) }
     val bottomSheetState = rememberModalBottomSheetState()
     val reminderEntries by viewModel.reminderEntries.collectAsState()
+    val pendingDeletion by viewModel.pendingDeletion.collectAsState()
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    
+    // Filter out reminders pending deletion
+    val displayedReminders = remember(reminderEntries, pendingDeletion) {
+        reminderEntries.filter { reminder ->
+            pendingDeletion?._id != reminder._id
+        }
+    }
+
+    // Show snackbar when there's a pending deletion
+    LaunchedEffect(pendingDeletion) {
+        if (pendingDeletion != null) {
+            val result = snackbarHostState.showSnackbar(
+                message = "\"${pendingDeletion.title}\" deleted",
+                actionLabel = "Undo",
+                duration = SnackbarDuration.Long
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.undoDelete()
+            }
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -136,9 +164,12 @@ fun HomeScreen(
                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
         }
     ) { paddingValues ->
-        if (reminderEntries.isEmpty()) {
+        if (displayedReminders.isEmpty()) {
             EmptyRemindersView(modifier = Modifier.padding(paddingValues))
         } else {
             LazyColumn(
@@ -156,7 +187,7 @@ fun HomeScreen(
                     )
                 }
 
-                items(reminderEntries) { reminder ->
+                items(displayedReminders) { reminder ->
                     ReminderCard(
                         reminder = reminder,
                         onClick = {
