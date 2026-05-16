@@ -28,7 +28,7 @@ object AppModule {
             ReminderDatabase::class.java,
             "reminder_items"
         )
-            .addMigrations(ReminderDatabase.MIGRATION_1_2)
+            .addMigrations(ReminderDatabase.MIGRATION_1_2, ReminderDatabase.MIGRATION_2_3)
             .build()
     }
 

@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
                 this,
                 getString(R.string.notification_permission_mandatory),
                 Toast.LENGTH_LONG
-            )
+            ).show()
             finish()
         }
     }
