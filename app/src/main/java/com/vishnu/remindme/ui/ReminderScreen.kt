@@ -38,6 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
@@ -65,6 +66,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -72,7 +74,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.vishnu.emotiontracker.ui.MainViewModel
 import com.vishnu.remindme.R
 import com.vishnu.remindme.model.RecurrencePattern
+import com.vishnu.remindme.model.RecurrenceUnit
 import com.vishnu.remindme.model.Reminder
+import com.vishnu.remindme.utils.RecurrenceUtils
 import com.vishnu.remindme.utils.Utils
 import java.time.Instant
 import java.time.LocalDateTime
@@ -180,12 +184,13 @@ fun HomeScreen(
             bottomSheetState = bottomSheetState,
             reminder = dialogReminderItem,
             onDismiss = { showBottomSheet = false },
-            onSetAlarm = { title, description, dueDate, recurrencePattern ->
+            onSetAlarm = { title, description, dueDate, recurrencePattern, recurrenceIntervalMillis ->
                 val reminder = Reminder(
                     title = title,
                     description = description,
                     dueDate = dueDate,
-                    recurrencePattern = recurrencePattern
+                    recurrencePattern = recurrencePattern,
+                    recurrenceIntervalMillis = recurrenceIntervalMillis
                 )
 
                 if (dialogReminderItem == null)
@@ -245,7 +250,7 @@ fun EmptyRemindersView(modifier: Modifier = Modifier) {
 fun ReminderBottomSheet(
     bottomSheetState: SheetState,
     onDismiss: () -> Unit,
-    onSetAlarm: (String, String?, Long, RecurrencePattern?) -> Unit,
+    onSetAlarm: (String, String?, Long, RecurrencePattern?, Long?) -> Unit,
     reminder: Reminder?,
 ) {
     var title by remember { mutableStateOf("") }
@@ -259,6 +264,13 @@ fun ReminderBottomSheet(
     var recurrencePattern by remember { mutableStateOf<RecurrencePattern?>(null) }
     var showRecurrenceMenu by remember { mutableStateOf(false) }
 
+    // Custom recurrence interval state, used when recurrencePattern == CUSTOM
+    var customCount by remember { mutableStateOf("") }
+    var customUnit by remember { mutableStateOf(RecurrenceUnit.MINUTES) }
+    var showUnitMenu by remember { mutableStateOf(false) }
+    val customIntervalMillis: Long? =
+        customCount.toLongOrNull()?.takeIf { it > 0 }?.let { it * customUnit.millis }
+
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = dueDateTime.toInstant(ZoneOffset.UTC).toEpochMilli(),
     )
@@ -270,7 +282,10 @@ fun ReminderBottomSheet(
 
     val validInput by remember {
         derivedStateOf {
-            dueDateTime > LocalDateTime.now() && title.isNotBlank()
+            dueDateTime > LocalDateTime.now() &&
+                    title.isNotBlank() &&
+                    (recurrencePattern != RecurrencePattern.CUSTOM ||
+                            (customCount.toLongOrNull() ?: 0L) > 0)
         }
     }
 
@@ -279,6 +294,15 @@ fun ReminderBottomSheet(
             title = reminder.title
             description = reminder.description
             recurrencePattern = reminder.recurrencePattern
+
+            if (reminder.recurrencePattern == RecurrencePattern.CUSTOM &&
+                reminder.recurrenceIntervalMillis != null
+            ) {
+                val (count, unit) =
+                    RecurrenceUtils.splitInterval(reminder.recurrenceIntervalMillis)
+                customCount = count.toString()
+                customUnit = unit
+            }
 
             dueDateTime = LocalDateTime.ofInstant(
                 Instant.ofEpochMilli(reminder.dueDate),
@@ -389,9 +413,15 @@ fun ReminderBottomSheet(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = stringResource(
-                            (recurrencePattern ?: RecurrencePattern.NONE).displayNameRes
-                        ),
+                        text = if (recurrencePattern == RecurrencePattern.CUSTOM)
+                            RecurrenceUtils.formatInterval(
+                                LocalContext.current,
+                                customIntervalMillis
+                            )
+                        else
+                            stringResource(
+                                (recurrencePattern ?: RecurrencePattern.NONE).displayNameRes
+                            ),
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -410,6 +440,47 @@ fun ReminderBottomSheet(
                                 showRecurrenceMenu = false
                             }
                         )
+                    }
+                }
+            }
+
+            // Custom interval input, shown only when the "Custom…" pattern is selected
+            if (recurrencePattern == RecurrencePattern.CUSTOM) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        modifier = Modifier.weight(1f),
+                        value = customCount,
+                        onValueChange = { input ->
+                            customCount = input.filter { it.isDigit() }.take(4)
+                        },
+                        label = { Text(stringResource(R.string.recurrence_interval_label)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Box {
+                        OutlinedButton(onClick = { showUnitMenu = true }) {
+                            Text(stringResource(customUnit.displayNameRes))
+                        }
+                        DropdownMenu(
+                            expanded = showUnitMenu,
+                            onDismissRequest = { showUnitMenu = false }
+                        ) {
+                            RecurrenceUnit.entries.forEach { unit ->
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(unit.displayNameRes)) },
+                                    onClick = {
+                                        customUnit = unit
+                                        showUnitMenu = false
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -436,7 +507,11 @@ fun ReminderBottomSheet(
                                 .atZone(ZoneId.systemDefault())
                                 .toInstant()
                                 .toEpochMilli(),
-                            recurrencePattern
+                            recurrencePattern,
+                            if (recurrencePattern == RecurrencePattern.CUSTOM)
+                                customIntervalMillis
+                            else
+                                null
                         )
                     },
                     enabled = validInput
@@ -523,10 +598,11 @@ fun ReminderCard(
         ZoneId.systemDefault()
     )
 
-    if (reminder.recurrencePattern != null)
+    val intervalMillis = RecurrenceUtils.resolveIntervalMillis(reminder)
+
+    if (intervalMillis != null && intervalMillis > 0)
         while (dueDateTime.isBefore(LocalDateTime.now()))
-            dueDateTime =
-                dueDateTime.plus(reminder.recurrencePattern.intervalMillis, ChronoUnit.MILLIS)
+            dueDateTime = dueDateTime.plus(intervalMillis, ChronoUnit.MILLIS)
 
     val isOverdue = reminder.recurrencePattern == null && dueDateTime.isBefore(LocalDateTime.now())
 
@@ -678,7 +754,7 @@ fun ReminderCard(
                                     modifier = Modifier.size(14.dp)
                                 )
                                 Text(
-                                    text = stringResource(reminder.recurrencePattern.displayNameRes),
+                                    text = RecurrenceUtils.formatRecurrence(context, reminder),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.secondary,
                                     modifier = Modifier.padding(start = 4.dp)

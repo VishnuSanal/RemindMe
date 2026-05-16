@@ -36,6 +36,24 @@
     <string name="recurrence_biweekly">Every 2 Weeks</string>
     <string name="recurrence_monthly">Monthly</string>
     <string name="recurrence_yearly">Yearly</string>
+    <string name="recurrence_custom">Custom…</string>
+    <string name="recurrence_interval_label">Repeat every</string>
+    <string name="unit_minutes">Minutes</string>
+    <string name="unit_hours">Hours</string>
+    <string name="unit_days">Days</string>
+
+    <plurals name="recurrence_every_minutes">
+        <item quantity="one">Every minute</item>
+        <item quantity="other">Every %d minutes</item>
+    </plurals>
+    <plurals name="recurrence_every_hours">
+        <item quantity="one">Every hour</item>
+        <item quantity="other">Every %d hours</item>
+    </plurals>
+    <plurals name="recurrence_every_days">
+        <item quantity="one">Every day</item>
+        <item quantity="other">Every %d days</item>
+    </plurals>
 
     <!-- Alarm screen -->
     <string name="alarm">Alarm</string>

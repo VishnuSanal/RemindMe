@@ -8,7 +8,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.vishnu.remindme.model.RecurrencePatternConverter
 import com.vishnu.remindme.model.Reminder
 
-@Database(entities = [Reminder::class], version = 2, exportSchema = false)
+@Database(entities = [Reminder::class], version = 3, exportSchema = false)
 @TypeConverters(RecurrencePatternConverter::class)
 abstract class ReminderDatabase : RoomDatabase() {
     abstract fun reminderDAO(): ReminderDAO
@@ -17,6 +17,12 @@ abstract class ReminderDatabase : RoomDatabase() {
         val MIGRATION_1_2: Migration = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE reminder_items ADD COLUMN recurrencePattern TEXT DEFAULT NULL")
+            }
+        }
+
+        val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE reminder_items ADD COLUMN recurrenceIntervalMillis INTEGER DEFAULT NULL")
             }
         }
     }

@@ -13,6 +13,8 @@ data class Reminder(
     val title: String,
     val description: String?,
     val dueDate: Long,
-    val recurrencePattern: RecurrencePattern? = null
+    val recurrencePattern: RecurrencePattern? = null,
+    /** Interval in milliseconds, used only when [recurrencePattern] is [RecurrencePattern.CUSTOM]. */
+    val recurrenceIntervalMillis: Long? = null
 ) : Parcelable
 

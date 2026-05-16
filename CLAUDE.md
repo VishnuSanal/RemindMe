@@ -37,9 +37,9 @@ Single-module (`:app`) Jetpack Compose app, package `com.vishnu.remindme`. Hilt 
 4. `AlarmForegroundService` posts the notification, draws a `SYSTEM_ALERT_WINDOW` overlay, and launches `AlarmActivity` (the full-screen ringing UI). For recurring reminders it calls `AlarmUtils.rescheduleAlarm()` to set the next occurrence.
 5. `BootReceiver` re-schedules all future/recurring alarms after `BOOT_COMPLETED`, since `AlarmManager` does not survive reboot.
 
-**Recurrence:** `RecurrencePattern` is a fixed enum (`NONE`/`DAILY`/`WEEKLY`/`BIWEEKLY`/`MONTHLY`/`YEARLY`) carrying a literal `intervalMillis`. `rescheduleAlarm()` advances `dueDate` by `intervalMillis` repeatedly until it lands in the future — so MONTHLY/YEARLY are approximations (30/365 days), not calendar-aware.
+**Recurrence:** `RecurrencePattern` is an enum of presets (`NONE`/`DAILY`/`WEEKLY`/`BIWEEKLY`/`MONTHLY`/`YEARLY`) each carrying a literal `intervalMillis`, plus a `CUSTOM` entry. For `CUSTOM`, the interval lives in `Reminder.recurrenceIntervalMillis` instead (built in the UI from a count + `RecurrenceUnit`). `RecurrenceUtils.resolveIntervalMillis()` is the single source of truth for a reminder's effective interval — always use it rather than reading `RecurrencePattern.intervalMillis` directly. `rescheduleAlarm()` advances `dueDate` by that interval repeatedly until it lands in the future — so MONTHLY/YEARLY are approximations (30/365 days), not calendar-aware.
 
-**Persistence:** Room database `ReminderDatabase` (entity `Reminder` in table `reminder_items`). `RecurrencePattern` is stored via `RecurrencePatternConverter`. Schema is at **version 2** — any entity change needs a new `Migration` in `ReminderDatabase` alongside the existing `MIGRATION_1_2` (`exportSchema = false`).
+**Persistence:** Room database `ReminderDatabase` (entity `Reminder` in table `reminder_items`). `RecurrencePattern` is stored via `RecurrencePatternConverter`. Schema is at **version 3** — any entity change needs a new `Migration` in `ReminderDatabase` alongside the existing `MIGRATION_1_2` / `MIGRATION_2_3`, registered in `AppModule.provideDatabase` (`exportSchema = false`).
 
 **DI:** `RemindMe` is the `@HiltAndroidApp` Application. `hilt/AppModule.kt` provides the database/DAO/repository singletons. `BootReceiver` is `@AndroidEntryPoint` with field injection. `MainViewModel` is `@HiltViewModel`.
 

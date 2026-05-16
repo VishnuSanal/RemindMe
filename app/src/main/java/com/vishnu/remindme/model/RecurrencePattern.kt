@@ -10,5 +10,8 @@ enum class RecurrencePattern(@StringRes val displayNameRes: Int, val intervalMil
     WEEKLY(R.string.recurrence_weekly, TimeUnit.DAYS.toMillis(7)),
     BIWEEKLY(R.string.recurrence_biweekly, TimeUnit.DAYS.toMillis(14)),
     MONTHLY(R.string.recurrence_monthly, TimeUnit.DAYS.toMillis(30)),
-    YEARLY(R.string.recurrence_yearly, TimeUnit.DAYS.toMillis(365));
+    YEARLY(R.string.recurrence_yearly, TimeUnit.DAYS.toMillis(365)),
+
+    /** User-defined interval; the actual value is stored in [com.vishnu.remindme.model.Reminder.recurrenceIntervalMillis]. */
+    CUSTOM(R.string.recurrence_custom, 0);
 }
