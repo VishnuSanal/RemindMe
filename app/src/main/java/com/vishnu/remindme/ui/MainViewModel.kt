@@ -7,6 +7,7 @@ import com.vishnu.remindme.alarm.AlarmUtils
 import com.vishnu.remindme.db.ReminderRepository
 import com.vishnu.remindme.model.Reminder
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,10 +47,36 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    /** The most recent delete coroutine, so [restoreReminder] can wait for it before re-inserting. */
+    private var lastDeleteJob: Job? = null
+
     fun deleteReminder(reminder: Reminder) {
-        viewModelScope.launch {
+        lastDeleteJob = viewModelScope.launch {
             AlarmUtils.cancelAlarm(context = application.applicationContext, reminder = reminder)
             delete(reminder)
+        }
+    }
+
+    /**
+     * Re-inserts a previously deleted reminder (keeping its original id) and re-schedules its alarm.
+     * Waits for the in-flight delete to commit first so the insert can't race ahead of it.
+     *
+     * Scheduling mirrors BootReceiver: a still-future reminder is scheduled as-is, a past-due
+     * recurring reminder is advanced to its next future occurrence, and a past-due non-recurring
+     * reminder is left unscheduled rather than fired immediately for an already-elapsed time.
+     */
+    fun restoreReminder(reminder: Reminder) {
+        viewModelScope.launch {
+            lastDeleteJob?.join()
+            reminder._id = insert(reminder)
+            val context = application.applicationContext
+            when {
+                reminder.dueDate >= System.currentTimeMillis() ->
+                    AlarmUtils.scheduleAlarm(context = context, reminder = reminder)
+
+                reminder.recurrencePattern != null ->
+                    AlarmUtils.rescheduleAlarm(context = context, reminder = reminder)
+            }
         }
     }
 

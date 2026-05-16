@@ -28,6 +28,8 @@
     <string name="next_trigger">Next Trigger</string>
     <string name="next_label">Next:</string>
     <string name="overdue">Overdue</string>
+    <string name="reminder_deleted">Reminder deleted</string>
+    <string name="undo">Undo</string>
 
     <!-- Recurrence patterns -->
     <string name="recurrence_never">Never</string>
