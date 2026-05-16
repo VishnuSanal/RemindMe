@@ -42,6 +42,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -58,6 +61,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -84,6 +88,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,9 +102,15 @@ fun HomeScreen(
     val bottomSheetState = rememberModalBottomSheetState()
     val reminderEntries by viewModel.reminderEntries.collectAsState()
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    val reminderDeletedMessage = stringResource(R.string.reminder_deleted)
+    val undoLabel = stringResource(R.string.undo)
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -161,14 +172,25 @@ fun HomeScreen(
                     )
                 }
 
-                items(reminderEntries) { reminder ->
+                items(reminderEntries, key = { it._id }) { reminder ->
                     ReminderCard(
                         reminder = reminder,
                         onClick = {
                             dialogReminderItem = reminder
                             showBottomSheet = true
                         },
-                        onDelete = { viewModel.deleteReminder(reminder) }
+                        onDelete = {
+                            viewModel.deleteReminder(reminder)
+                            coroutineScope.launch {
+                                snackbarHostState.currentSnackbarData?.dismiss()
+                                val result = snackbarHostState.showSnackbar(
+                                    message = reminderDeletedMessage,
+                                    actionLabel = undoLabel
+                                )
+                                if (result == SnackbarResult.ActionPerformed)
+                                    viewModel.restoreReminder(reminder)
+                            }
+                        }
                     )
                 }
 
