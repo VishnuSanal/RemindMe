@@ -1,0 +1,3 @@
+- move strings out to enable i18n
+- repeat every x minutes / hours / days
+- implement undo feature to avoid accidental removal of alarms
