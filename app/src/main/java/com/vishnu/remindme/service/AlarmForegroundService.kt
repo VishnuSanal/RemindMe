@@ -13,6 +13,7 @@ import android.view.View
 import android.view.WindowManager
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
+import com.vishnu.remindme.R
 import com.vishnu.remindme.alarm.AlarmUtils
 import com.vishnu.remindme.model.Reminder
 import com.vishnu.remindme.ui.AlarmActivity
@@ -96,10 +97,10 @@ class AlarmForegroundService : LifecycleService() {
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,
-            "RemindMe Reminder",
+            getString(R.string.notification_channel_name),
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = "Channel for RemindMe Reminder triggers"
+            description = getString(R.string.notification_channel_description)
         }
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(channel)
@@ -107,7 +108,7 @@ class AlarmForegroundService : LifecycleService() {
 
     private fun showNotification(reminder: Reminder) {
         val notification = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-            .setContentTitle("RemindMe Reminder")
+            .setContentTitle(getString(R.string.notification_title))
             .setContentText(reminder.title)
             .setSubText(reminder.description)
             .setSmallIcon(android.R.drawable.ic_dialog_alert)

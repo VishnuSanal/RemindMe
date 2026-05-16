@@ -1,3 +1,52 @@
 <resources>
     <string name="app_name">Remind Me!</string>
+
+    <!-- Home screen -->
+    <string name="add_new_reminder">Add New Reminder</string>
+    <string name="edit_reminder">Edit Reminder</string>
+    <string name="your_reminders">Your Reminders</string>
+    <string name="no_reminders_yet">No Reminders Yet</string>
+    <string name="no_reminders_message">Tap the + button to create your first reminder</string>
+
+    <!-- Reminder form -->
+    <string name="title">Title</string>
+    <string name="description">Description</string>
+    <string name="select_date">Select Date</string>
+    <string name="select_time">Select Time</string>
+    <string name="set_recurrence">Set Recurrence</string>
+    <string name="date_label">Date:</string>
+    <string name="time_label">Time:</string>
+    <string name="repeat_label">Repeat:</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="confirm">Confirm</string>
+
+    <!-- Reminder card -->
+    <string name="delete">Delete</string>
+    <string name="due_date">Due Date</string>
+    <string name="due_label">Due:</string>
+    <string name="next_trigger">Next Trigger</string>
+    <string name="next_label">Next:</string>
+    <string name="overdue">Overdue</string>
+
+    <!-- Recurrence patterns -->
+    <string name="recurrence_never">Never</string>
+    <string name="recurrence_daily">Daily</string>
+    <string name="recurrence_weekly">Weekly</string>
+    <string name="recurrence_biweekly">Every 2 Weeks</string>
+    <string name="recurrence_monthly">Monthly</string>
+    <string name="recurrence_yearly">Yearly</string>
+
+    <!-- Alarm screen -->
+    <string name="alarm">Alarm</string>
+    <string name="alarm_active_for">Alarm active for %1$s</string>
+    <string name="dismiss">Dismiss</string>
+
+    <!-- Notification -->
+    <string name="notification_channel_name">RemindMe Reminder</string>
+    <string name="notification_channel_description">Channel for RemindMe Reminder triggers</string>
+    <string name="notification_title">RemindMe Reminder</string>
+
+    <!-- Permissions -->
+    <string name="notification_permission_mandatory">Notification permission mandatory!</string>
 </resources>

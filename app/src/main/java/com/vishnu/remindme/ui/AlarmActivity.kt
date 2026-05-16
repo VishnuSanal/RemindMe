@@ -47,10 +47,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.vishnu.remindme.R
 import com.vishnu.remindme.model.Reminder
 import com.vishnu.remindme.ui.theme.RemindMeTheme
 import com.vishnu.remindme.utils.Constants
@@ -213,7 +215,7 @@ fun AlarmScreen(
             }
 
             Text(
-                text = "Alarm active for ${formatSeconds(seconds)}",
+                text = stringResource(R.string.alarm_active_for, formatSeconds(seconds)),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -235,7 +237,8 @@ fun AlarmScreen(
                     )
                 ) {
                     Text(
-                        text = "Dismiss", style = MaterialTheme.typography.titleMedium
+                        text = stringResource(R.string.dismiss),
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
 
@@ -287,7 +290,7 @@ fun AlarmIcon() {
     ) {
         Icon(
             imageVector = Icons.Default.Notifications,
-            contentDescription = "Alarm",
+            contentDescription = stringResource(R.string.alarm),
             tint = MaterialTheme.colorScheme.onPrimaryContainer,
             modifier = Modifier.size(64.dp)
         )

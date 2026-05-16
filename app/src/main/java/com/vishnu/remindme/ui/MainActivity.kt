@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import com.vishnu.remindme.R
 import com.vishnu.remindme.ui.theme.RemindMeTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -61,7 +62,11 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (!isGranted) {
-            Toast.makeText(this, "Notification permission mandatory!", Toast.LENGTH_LONG)
+            Toast.makeText(
+                this,
+                getString(R.string.notification_permission_mandatory),
+                Toast.LENGTH_LONG
+            )
             finish()
         }
     }

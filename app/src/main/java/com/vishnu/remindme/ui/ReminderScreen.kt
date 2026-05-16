@@ -62,6 +62,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
@@ -132,7 +133,7 @@ fun HomeScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Add New Reminder",
+                    contentDescription = stringResource(R.string.add_new_reminder),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
@@ -149,7 +150,7 @@ fun HomeScreen(
             ) {
                 item {
                     Text(
-                        text = "Your Reminders",
+                        text = stringResource(R.string.your_reminders),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(vertical = 16.dp)
@@ -221,7 +222,7 @@ fun EmptyRemindersView(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "No Reminders Yet",
+                text = stringResource(R.string.no_reminders_yet),
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold
@@ -230,7 +231,7 @@ fun EmptyRemindersView(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Tap the + button to create your first reminder",
+                text = stringResource(R.string.no_reminders_message),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -299,7 +300,8 @@ fun ReminderBottomSheet(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = if (reminder == null) "Add New Reminder" else "Edit Reminder",
+                text = if (reminder == null) stringResource(R.string.add_new_reminder)
+                else stringResource(R.string.edit_reminder),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
@@ -309,7 +311,7 @@ fun ReminderBottomSheet(
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Title") },
+                label = { Text(stringResource(R.string.title)) },
                 singleLine = true
             )
 
@@ -318,7 +320,7 @@ fun ReminderBottomSheet(
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 value = description ?: "",
                 onValueChange = { description = it },
-                label = { Text("Description") },
+                label = { Text(stringResource(R.string.description)) },
             )
 
             Row(
@@ -329,17 +331,17 @@ fun ReminderBottomSheet(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_calendar),
-                    contentDescription = "Select Date",
+                    contentDescription = stringResource(R.string.select_date),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(end = 16.dp)
                 )
                 Text(
-                    text = "Date: ${
-                        Utils.formatDate(
-                            LocalContext.current,
-                            dueDateTime.toLocalDate()
-                        )
-                    }",
+                    text = stringResource(R.string.date_label),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = Utils.formatDate(LocalContext.current, dueDateTime.toLocalDate()),
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -352,17 +354,17 @@ fun ReminderBottomSheet(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_alarm),
-                    contentDescription = "Select Time",
+                    contentDescription = stringResource(R.string.select_time),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(end = 16.dp)
                 )
                 Text(
-                    text = "Time: ${
-                        Utils.formatTime(
-                            LocalContext.current,
-                            dueDateTime.toLocalTime()
-                        )
-                    }",
+                    text = stringResource(R.string.time_label),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = Utils.formatTime(LocalContext.current, dueDateTime.toLocalTime()),
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -377,12 +379,19 @@ fun ReminderBottomSheet(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_calendar),
-                        contentDescription = "Set Recurrence",
+                        contentDescription = stringResource(R.string.set_recurrence),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(end = 16.dp)
                     )
                     Text(
-                        text = "Repeat: ${recurrencePattern?.displayName ?: "Never"}",
+                        text = stringResource(R.string.repeat_label),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = stringResource(
+                            (recurrencePattern ?: RecurrencePattern.NONE).displayNameRes
+                        ),
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -394,7 +403,7 @@ fun ReminderBottomSheet(
                 ) {
                     RecurrencePattern.entries.forEach { pattern ->
                         DropdownMenuItem(
-                            text = { Text(pattern.displayName) },
+                            text = { Text(stringResource(pattern.displayNameRes)) },
                             onClick = {
                                 recurrencePattern =
                                     if (pattern == RecurrencePattern.NONE) null else pattern
@@ -415,7 +424,7 @@ fun ReminderBottomSheet(
                     onClick = onDismiss,
                     modifier = Modifier.padding(end = 8.dp)
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
 
                 Button(
@@ -432,7 +441,7 @@ fun ReminderBottomSheet(
                     },
                     enabled = validInput
                 ) {
-                    Text("Save")
+                    Text(stringResource(R.string.save))
                 }
             }
         }
@@ -456,12 +465,12 @@ fun ReminderBottomSheet(
                         showDatePicker = false
                     }
                 ) {
-                    Text("Confirm")
+                    Text(stringResource(R.string.confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         ) {
@@ -472,7 +481,7 @@ fun ReminderBottomSheet(
     if (showTimePicker) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showTimePicker = false },
-            title = { Text("Select Time") },
+            title = { Text(stringResource(R.string.select_time)) },
             text = {
                 TimePicker(
                     state = timePickerState,
@@ -490,12 +499,12 @@ fun ReminderBottomSheet(
                         showTimePicker = false
                     }
                 ) {
-                    Text("Confirm")
+                    Text(stringResource(R.string.confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showTimePicker = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -558,7 +567,7 @@ fun ReminderCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete",
+                        contentDescription = stringResource(R.string.delete),
                         tint = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
                         modifier = Modifier.size(20.dp)
                     )
@@ -589,7 +598,7 @@ fun ReminderCard(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_calendar),
-                        contentDescription = "Due Date",
+                        contentDescription = stringResource(R.string.due_date),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .size(20.dp)
@@ -597,7 +606,7 @@ fun ReminderCard(
                     )
 
                     Text(
-                        text = "Due:",
+                        text = stringResource(R.string.due_label),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -621,7 +630,7 @@ fun ReminderCard(
                                 painterResource(R.drawable.ic_repeat)
                             else
                                 painterResource(R.drawable.ic_alarm),
-                            contentDescription = "Next Trigger",
+                            contentDescription = stringResource(R.string.next_trigger),
                             tint = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier
                                 .size(20.dp)
@@ -629,7 +638,7 @@ fun ReminderCard(
                         )
 
                         Text(
-                            text = "Next:",
+                            text = stringResource(R.string.next_label),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -669,7 +678,7 @@ fun ReminderCard(
                                     modifier = Modifier.size(14.dp)
                                 )
                                 Text(
-                                    text = reminder.recurrencePattern.displayName,
+                                    text = stringResource(reminder.recurrencePattern.displayNameRes),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.secondary,
                                     modifier = Modifier.padding(start = 4.dp)
@@ -699,7 +708,7 @@ fun ReminderCard(
                                     modifier = Modifier.size(14.dp)
                                 )
                                 Text(
-                                    text = "Overdue",
+                                    text = stringResource(R.string.overdue),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.error,
                                     modifier = Modifier.padding(start = 4.dp)
