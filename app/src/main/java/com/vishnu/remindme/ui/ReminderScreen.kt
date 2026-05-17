@@ -21,7 +21,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -33,7 +35,9 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -100,6 +104,8 @@ fun HomeScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
     var dialogReminderItem by remember { mutableStateOf<Reminder?>(null) }
     val bottomSheetState = rememberModalBottomSheetState()
+    var showSettingsSheet by remember { mutableStateOf(false) }
+    val settingsSheetState = rememberModalBottomSheetState()
     val reminderEntries by viewModel.reminderEntries.collectAsState()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -138,20 +144,34 @@ fun HomeScreen(
                 )
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    dialogReminderItem = null
-                    showBottomSheet = true
+        bottomBar = {
+            BottomAppBar(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                actions = {
+                    FilledTonalIconButton(onClick = { showSettingsSheet = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.settings),
+                        )
+                    }
                 },
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.add_new_reminder),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
+                floatingActionButton = {
+                    FloatingActionButton(
+                        onClick = {
+                            dialogReminderItem = null
+                            showBottomSheet = true
+                        },
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = stringResource(R.string.add_new_reminder),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+            )
         }
     ) { paddingValues ->
         if (reminderEntries.isEmpty()) {
@@ -195,7 +215,7 @@ fun HomeScreen(
                 }
 
                 item {
-                    Spacer(modifier = Modifier.height(80.dp)) // Space for FAB
+                    Spacer(modifier = Modifier.height(32.dp)) // Clearance for the docked FAB
                 }
             }
         }
@@ -224,6 +244,13 @@ fun HomeScreen(
 
                 showBottomSheet = false
             }
+        )
+    }
+
+    if (showSettingsSheet) {
+        SettingsBottomSheet(
+            bottomSheetState = settingsSheetState,
+            onDismiss = { showSettingsSheet = false }
         )
     }
 }

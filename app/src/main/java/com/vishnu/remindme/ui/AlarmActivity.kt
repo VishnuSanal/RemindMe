@@ -5,6 +5,9 @@ import android.media.Ringtone
 import android.media.RingtoneManager
 import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -54,6 +57,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.vishnu.remindme.R
 import com.vishnu.remindme.model.Reminder
+import com.vishnu.remindme.settings.SettingsRepository
 import com.vishnu.remindme.ui.theme.RemindMeTheme
 import com.vishnu.remindme.utils.Constants
 import com.vishnu.remindme.utils.Utils
@@ -66,6 +70,7 @@ import java.util.Locale
 class AlarmActivity : ComponentActivity() {
 
     private lateinit var ringtone: Ringtone
+    private var vibrator: Vibrator? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,24 +90,33 @@ class AlarmActivity : ComponentActivity() {
             return
         }
 
-        var ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+        val settings = SettingsRepository(applicationContext)
 
-        if (ringtoneUri == null) {
-            ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-            if (ringtoneUri == null) {
-                ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+        // A null URI means the user picked "Silent" — play no sound at all.
+        val ringtoneUri = settings.resolveRingtoneUri()
+        if (ringtoneUri != null) {
+            // getRingtone() returns null if the stored URI is no longer playable
+            // (e.g. a custom sound that was since deleted); fall back to the default
+            // alarm sound, and skip sound entirely if even that is unavailable.
+            val resolved = RingtoneManager.getRingtone(applicationContext, ringtoneUri)
+                ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                    ?.let { RingtoneManager.getRingtone(applicationContext, it) }
+            if (resolved != null) {
+                ringtone = resolved
+                ringtone.setAudioAttributes(
+                    AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
+                )
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    ringtone.isLooping = true
+                }
+                ringtone.play()
             }
         }
 
-        ringtone = RingtoneManager.getRingtone(applicationContext, ringtoneUri)
-        ringtone.setAudioAttributes(
-            AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
-        )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            ringtone.isLooping = true
+        if (settings.vibrateEnabled) {
+            startVibration()
         }
-        ringtone.play()
 
         setContent {
             RemindMeTheme {
@@ -111,11 +125,11 @@ class AlarmActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding),
                         reminder = reminder,
                         onDismiss = {
-                            ringtone.stop()
+                            stopAlarm()
                             finish()
                         },
                         onSnooze = {
-                            ringtone.stop()
+                            stopAlarm()
                             finish()
                         })
                 }
@@ -125,7 +139,36 @@ class AlarmActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        stopAlarm()
+    }
+
+    private fun startVibration() {
+        val vib = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            (getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            getSystemService(VIBRATOR_SERVICE) as Vibrator
+        }
+        if (!vib.hasVibrator()) return
+        vibrator = vib
+
+        // Repeating wait/buzz/wait pattern, looping from index 0.
+        val effect = VibrationEffect.createWaveform(longArrayOf(0, 800, 600), 0)
+
+        // Tag the vibration as an alarm so it isn't suppressed by the device's
+        // ringer mode (a plain vibrate() is treated like a notification buzz).
+        val attributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_ALARM)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+
+        @Suppress("DEPRECATION")
+        vib.vibrate(effect, attributes)
+    }
+
+    private fun stopAlarm() {
         if (::ringtone.isInitialized && ringtone.isPlaying) ringtone.stop()
+        vibrator?.cancel()
     }
 }
 
