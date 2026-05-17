@@ -22,8 +22,11 @@ import com.vishnu.remindme.utils.Constants
 class AlarmForegroundService : LifecycleService() {
 
     companion object {
-        const val NOTIFICATION_CHANNEL_ID = "com.vishnu.remindme.alarm_service_channel"
+        const val NOTIFICATION_CHANNEL_ID = "com.vishnu.remindme.alarm_service_channel_v2"
         const val NOTIFICATION_ID = 1
+
+        /** Pre-v2 channel id; deleted on upgrade since it carried a default sound. */
+        private const val LEGACY_CHANNEL_ID = "com.vishnu.remindme.alarm_service_channel"
     }
 
     override fun onCreate() {
@@ -95,14 +98,22 @@ class AlarmForegroundService : LifecycleService() {
     }
 
     private fun createNotificationChannel() {
+        val manager = getSystemService(NotificationManager::class.java)
+
+        // Drop the legacy channel: it played a default sound, which conflicts with the
+        // user-chosen ringtone (and with "Silent"). AlarmActivity is the single source of
+        // truth for sound + vibration, so this channel stays silent.
+        manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
+
         val channel = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,
             getString(R.string.notification_channel_name),
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
             description = getString(R.string.notification_channel_description)
+            setSound(null, null)
+            enableVibration(false)
         }
-        val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(channel)
     }
 
