@@ -1,0 +1,81 @@
+<resources>
+    <string name="app_name">Remind Me!</string>
+
+    <!-- Home screen -->
+    <string name="add_new_reminder">添加新提醒</string>
+    <string name="edit_reminder">编辑提醒</string>
+    <string name="your_reminders">您的提醒</string>
+    <string name="no_reminders_yet">尚无提醒</string>
+    <string name="no_reminders_message">轻触 + 按钮创建第一个提醒</string>
+
+    <!-- Reminder form -->
+    <string name="title">标题</string>
+    <string name="description">描述</string>
+    <string name="select_date">选择日期</string>
+    <string name="select_time">选择时间</string>
+    <string name="set_recurrence">设置重复</string>
+    <string name="date_label">日期：</string>
+    <string name="time_label">时间：</string>
+    <string name="repeat_label">重复：</string>
+    <string name="cancel">取消</string>
+    <string name="save">保存</string>
+    <string name="confirm">确认</string>
+
+    <!-- Reminder card -->
+    <string name="delete">删除</string>
+    <string name="due_date">到期日</string>
+    <string name="due_label">到期：</string>
+    <string name="next_trigger">下次触发</string>
+    <string name="next_label">下次：</string>
+    <string name="overdue">已过期</string>
+    <string name="reminder_deleted">删除了提醒</string>
+    <string name="undo">撤销</string>
+
+    <!-- Recurrence patterns -->
+    <string name="recurrence_never">永不</string>
+    <string name="recurrence_daily">每天</string>
+    <string name="recurrence_weekly">每周</string>
+    <string name="recurrence_biweekly">每 2 周</string>
+    <string name="recurrence_monthly">每月</string>
+    <string name="recurrence_yearly">每年</string>
+    <string name="recurrence_custom">自定义…</string>
+    <string name="recurrence_interval_label">重复间隔</string>
+    <string name="unit_minutes">分钟</string>
+    <string name="unit_hours">小时</string>
+    <string name="unit_days">天</string>
+
+    <plurals name="recurrence_every_minutes">
+        <item quantity="one">每分钟</item>
+        <item quantity="other">每 %d 分钟</item>
+    </plurals>
+    <plurals name="recurrence_every_hours">
+        <item quantity="one">每小时</item>
+        <item quantity="other">每 %d 小时</item>
+    </plurals>
+    <plurals name="recurrence_every_days">
+        <item quantity="one">每天</item>
+        <item quantity="other">每 %d 天</item>
+    </plurals>
+
+    <!-- Alarm screen -->
+    <string name="alarm">闹铃</string>
+    <string name="alarm_active_for">已响铃 %1$s</string>
+    <string name="dismiss">关闭</string>
+
+    <!-- Notification -->
+    <string name="notification_channel_name">RemindMe 提醒</string>
+    <string name="notification_channel_description">Channel for RemindMe 提醒触发器通道</string>
+    <string name="notification_title">RemindMe 提醒</string>
+
+    <!-- Permissions -->
+    <string name="notification_permission_mandatory">必须授予通知权限！</string>
+
+    <!-- Settings -->
+    <string name="settings">设置</string>
+    <string name="settings_title">设置</string>
+    <string name="alarm_sound">闹铃声音</string>
+    <string name="alarm_sound_picker_title">选择闹铃声</string>
+    <string name="vibrate">震动</string>
+    <string name="ringtone_default">默认</string>
+    <string name="ringtone_silent">静音</string>
+</resources>
