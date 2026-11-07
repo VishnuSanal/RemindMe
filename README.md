@@ -41,6 +41,15 @@ Consider donating to support the development! It requires a lot of time and effo
   </a>
 </p>
 
+## Join Telegram Group
+If you enjoy the app, wish to contribute or simply wish to be with like-minded people, come join us. It is fun :)
+
+<p align="center">
+  <a href="https://t.me/QuotesStatusCreator">
+    <img src="https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram">
+  </a>
+</p>
+
 ## Screenshots
 
 <p align="center">

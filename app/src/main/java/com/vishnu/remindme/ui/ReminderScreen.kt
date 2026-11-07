@@ -80,7 +80,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import com.vishnu.emotiontracker.ui.MainViewModel
+import com.vishnu.remindme.Constants
 import com.vishnu.remindme.R
 import com.vishnu.remindme.model.RecurrencePattern
 import com.vishnu.remindme.model.RecurrenceUnit
@@ -100,6 +102,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
+    navController: NavHostController,
     viewModel: MainViewModel = hiltViewModel(),
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -252,7 +255,15 @@ fun HomeScreen(
     if (showSettingsSheet) {
         SettingsBottomSheet(
             bottomSheetState = settingsSheetState,
-            onDismiss = { showSettingsSheet = false }
+            onDismiss = { showSettingsSheet = false },
+            onAboutClick = {
+                coroutineScope.launch {
+                    settingsSheetState.hide()
+                }.invokeOnCompletion {
+                    showSettingsSheet = false
+                    navController.navigate(Constants.SCREEN_ABOUT)
+                }
+            }
         )
     }
 }

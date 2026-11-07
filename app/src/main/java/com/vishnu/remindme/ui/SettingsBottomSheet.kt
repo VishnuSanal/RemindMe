@@ -9,19 +9,17 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
@@ -32,21 +30,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
+import com.vishnu.remindme.BuildConfig
 import com.vishnu.remindme.R
 import com.vishnu.remindme.settings.SettingsRepository
-import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsBottomSheet(
     bottomSheetState: SheetState,
     onDismiss: () -> Unit,
+    onAboutClick: () -> Unit,
 ) {
     val context = LocalContext.current
     val settings = remember { SettingsRepository(context) }
@@ -86,72 +86,113 @@ fun SettingsBottomSheet(
             Text(
                 text = stringResource(R.string.settings_title),
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            // Alarm sound
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        pickerLauncher.launch(buildRingtonePickerIntent(context, ringtoneUri))
-                    }
-                    .padding(vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_alarm),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+            // Grouped M3 card, matching the visual language of the About screen.
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                 )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.alarm_sound),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = ringtoneTitle(ringtoneUri),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            ) {
+                // Alarm sound
+                ListItem(
+                    modifier = Modifier.clickable {
+                        pickerLauncher.launch(buildRingtonePickerIntent(context, ringtoneUri))
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Unspecified),
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_alarm),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    headlineContent = {
+                        Text(
+                            text = stringResource(R.string.alarm_sound),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    },
+                    supportingContent = {
+                        Text(
+                            text = ringtoneTitle(ringtoneUri),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                )
 
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-            )
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 56.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
 
-            // Vibrate
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
+                // Vibrate
+                ListItem(
+                    modifier = Modifier.clickable {
                         vibrate = !vibrate
                         settings.vibrateEnabled = vibrate
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Unspecified),
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_vibrate),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    headlineContent = {
+                        Text(
+                            text = stringResource(R.string.vibrate),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = vibrate,
+                            onCheckedChange = {
+                                vibrate = it
+                                settings.vibrateEnabled = it
+                            }
+                        )
                     }
-                    .padding(vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = stringResource(R.string.vibrate),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
                 )
-                Switch(
-                    checked = vibrate,
-                    onCheckedChange = {
-                        vibrate = it
-                        settings.vibrateEnabled = it
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 56.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
+
+                // About
+                ListItem(
+                    modifier = Modifier.clickable { onAboutClick() },
+                    colors = ListItemDefaults.colors(containerColor = Color.Unspecified),
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_info),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    headlineContent = {
+                        Text(
+                            text = stringResource(R.string.about),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    },
+                    supportingContent = {
+                        Text(
+                            text = BuildConfig.VERSION_NAME,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

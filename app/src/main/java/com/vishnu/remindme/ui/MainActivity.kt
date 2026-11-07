@@ -12,11 +12,19 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.vishnu.remindme.Constants
 import com.vishnu.remindme.R
 import com.vishnu.remindme.ui.theme.RemindMeTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -41,7 +49,50 @@ class MainActivity : ComponentActivity() {
         setContent {
             RemindMeTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    HomeScreen(Modifier.padding(innerPadding))
+                    val navController = rememberNavController()
+
+                    NavHost(
+                        navController = navController,
+                        startDestination = Constants.SCREEN_HOME,
+                        modifier = Modifier.padding(innerPadding)
+                    ) {
+                        composable(route = Constants.SCREEN_HOME) {
+                            HomeScreen(
+                                modifier = Modifier,
+                                navController = navController
+                            )
+                        }
+
+                        composable(
+                            route = Constants.SCREEN_ABOUT,
+                            enterTransition = {
+                                slideIntoContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.Down,
+                                    animationSpec = tween(durationMillis = 700)
+                                ) + fadeIn(animationSpec = tween(durationMillis = 700))
+                            },
+                            exitTransition = {
+                                slideOutOfContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.Down,
+                                    animationSpec = tween(durationMillis = 700)
+                                ) + fadeOut(animationSpec = tween(durationMillis = 700))
+                            },
+                            popEnterTransition = {
+                                slideIntoContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.Down,
+                                    animationSpec = tween(durationMillis = 700)
+                                ) + fadeIn(animationSpec = tween(durationMillis = 700))
+                            },
+                            popExitTransition = {
+                                slideOutOfContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.Down,
+                                    animationSpec = tween(durationMillis = 700)
+                                ) + fadeOut(animationSpec = tween(durationMillis = 700))
+                            }
+                        ) {
+                            AboutScreen(navController)
+                        }
+                    }
                 }
             }
         }
