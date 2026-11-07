@@ -9,12 +9,12 @@ plugins {
 
 android {
     namespace = "com.vishnu.remindme"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.vishnu.remindme"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 8
         versionName = "v1.3.0"
 
