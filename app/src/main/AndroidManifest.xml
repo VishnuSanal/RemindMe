@@ -60,6 +60,8 @@
             android:exported="true"
             android:launchMode="singleInstancePerTask"
             android:taskAffinity=""
+            android:turnScreenOn="true"
+            android:showWhenLocked="true"
             android:theme="@style/Theme.RemindMe" />
     </application>
 

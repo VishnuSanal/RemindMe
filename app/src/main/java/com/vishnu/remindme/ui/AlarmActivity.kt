@@ -1,5 +1,6 @@
 package com.vishnu.remindme.ui
 
+import android.app.KeyguardManager
 import android.media.AudioAttributes
 import android.media.Ringtone
 import android.media.RingtoneManager
@@ -75,6 +76,10 @@ class AlarmActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // https://developer.android.com/reference/android/app/Activity#setTurnScreenOn(boolean)
+        (getSystemService(KEYGUARD_SERVICE) as KeyguardManager)
+            .requestDismissKeyguard(this, null)
 
 //        val reminder = Reminder(0, "Title", "Description", System.currentTimeMillis()) // debug
         val reminder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
