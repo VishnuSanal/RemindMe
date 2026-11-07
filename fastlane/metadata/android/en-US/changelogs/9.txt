@@ -1,0 +1,6 @@
+- new settings page
+- enable custom ringtones
+- enable/disable vibration
+- about page
+- fix lock screen issue
+- fix keyboard overlay issue
