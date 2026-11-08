@@ -15,8 +15,8 @@ android {
         applicationId = "com.vishnu.remindme"
         minSdk = 26
         targetSdk = 36
-        versionCode = 10
-        versionName = "v1.4.10"
+        versionCode = 11
+        versionName = "v1.4.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
